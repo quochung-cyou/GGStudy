@@ -19,3 +19,5 @@ spring:
 jasypt:
   encryptor:
     password: ${JASYPT_ENCRYPTOR_PASSWORD}
+gemini:
+  api-key: ENC(OmSIBjOVMchVTLVEtkFcQXlD2iMFy164c6XhC1bh+nYF9OOVlnOpSLjuD56ZBz37hNGuL8Fxm/70qfSr4QGRQ5IlvE9c4G2ioh+7djO8H/Q=)
