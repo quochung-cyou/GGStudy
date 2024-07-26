@@ -15,3 +15,5 @@ spring:
     drop-first: false
     change-log: db/changelog/changelog-master.xml
     default-schema: public
+gemini:
+  api-key: value

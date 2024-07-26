@@ -9,3 +9,5 @@ spring:
             dialect: org.hibernate.dialect.H2Dialect
     liquibase:
         enabled: false
+gemini:
+    api-key: value
