@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: main
+  profiles:
+    active: local
+logging:
+  file:
+    path: /home/root
+    name: app.log
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'health'
+  endpoint:
+    health:
+      show-details: always

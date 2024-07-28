@@ -1,0 +1,88 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - deploy
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+
+      - name: Build with Maven
+        run: mvn clean package -Dspring.profiles.active=deploy
+
+      - name: Deploy to VPS
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_IP: ${{ secrets.VPS_IP }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+        run: |
+          echo "${SSH_PRIVATE_KEY}" > private_key
+          chmod 600 private_key
+          
+          echo "Copying Docker Compose file..."
+          scp -i private_key docker-compose.yml ${VPS_USER}@${VPS_IP}:/home/${VPS_USER}/docker-compose.yml
+          
+          echo "Stopping old application..."
+          ssh -i private_key ${VPS_USER}@${VPS_IP} 'pkill -f "java -jar" || true'
+          
+          echo "Starting MySQL container with environment variables..."
+          ssh -i private_key ${VPS_USER}@${VPS_IP} << EOF
+          export MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+          export MYSQL_DATABASE=${MYSQL_DATABASE}
+          export MYSQL_USER=${MYSQL_USER}
+          export MYSQL_PASSWORD=${MYSQL_PASSWORD}
+          docker-compose -f /home/${VPS_USER}/docker-compose.yml up -d mysql
+          EOF
+          
+          echo "Deploying new application..."
+          scp -i private_key target/*.jar ${VPS_USER}@${VPS_IP}:/home/${VPS_USER}/app.jar
+          
+          echo "Starting new application..."
+          ssh -i private_key ${VPS_USER}@${VPS_IP} << 'EOF'
+          nohup java -jar /home/${VPS_USER}/app.jar --spring.profiles.active=deploy > /home/${VPS_USER}/app.log 2>&1 &
+          EOF
+
+      - name: Health Check
+        run: |
+          echo "Waiting for application to start..."
+          sleep 30
+          
+          retries=10
+          success=false
+          
+          for i in $(seq 1 $retries); do
+            echo "Health check attempt $i..."
+            response=$(ssh -i private_key ${VPS_USER}@${VPS_IP} 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health')
+            echo "HTTP response code: $response"
+          
+            if [ "$response" -eq 200 ]; then
+              echo "Health check successful!"
+              success=true
+              break
+            else
+              echo "Health check failed, retrying in 10 seconds..."
+              sleep 10
+            fi
+          done
+          
+          if [ "$success" = false ]; then
+            echo "Health check failed after $retries attempts."
+            exit 1
+          fi
+          
+          echo "Application deployed successfully!"
