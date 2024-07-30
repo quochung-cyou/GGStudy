@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: GGStudy
+  profiles:
+    active: local
+logging:
+  file:
+    path: backend/logs
+    name: app.log
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'health'
+  endpoint:
+    health:
+      show-details: always
