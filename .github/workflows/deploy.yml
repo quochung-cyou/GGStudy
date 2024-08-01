@@ -50,7 +50,7 @@ jobs:
           JASYPT_ENCRYPTOR_PASSWORD: ${{ secrets.JASYPT_ENCRYPTOR_PASSWORD }}
         run: |
           cd backend
-          mvn clean package -Dspring.profiles.active=deploy -Djasypt.encryptor.password=${JASYPT_ENCRYPTOR_PASSWORD}
+          mvn clean package -Dspring.profiles.active=test -Djasypt.encryptor.password=${JASYPT_ENCRYPTOR_PASSWORD}
           
 
       - name: Deploy to VPS
