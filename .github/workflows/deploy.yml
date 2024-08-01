@@ -92,7 +92,7 @@ jobs:
           
           
           echo "Deploying new application..."
-          sshpass -p "${SSH_PASSWORD}" scp -o StrictHostKeyChecking=no target/*-with-dependencies.jar ${VPS_USER}@${VPS_IP}:~/app.jar
+          sshpass -p "${SSH_PASSWORD}" scp -o StrictHostKeyChecking=no target/*.jar ${VPS_USER}@${VPS_IP}:~/app.jar
               
           echo "Starting new application..."
           sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_IP} << EOF
