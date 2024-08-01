@@ -3,11 +3,6 @@ spring:
     name: GGStudy
   profiles:
     active: local
-  liquibase:
-    enabled: true
-    drop-first: false
-    change-log: db/changelog/changelog-master.xml
-    default-schema: public
 logging:
   file:
     path: backend/logs
