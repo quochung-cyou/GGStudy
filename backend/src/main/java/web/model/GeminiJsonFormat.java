@@ -9,7 +9,6 @@ import java.util.List;
 
 @Getter
 @Setter
-@Entity
 public class GeminiJsonFormat {
     @JsonProperty("topic_name")
     private String topicName;

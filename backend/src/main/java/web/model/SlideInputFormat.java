@@ -7,7 +7,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Entity
 public class SlideInputFormat {
     @JsonProperty("chapter_name")
     private String slideTopicName;

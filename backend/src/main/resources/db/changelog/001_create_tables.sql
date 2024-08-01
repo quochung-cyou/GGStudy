@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS `projects` (
     id varchar(36) primary key,
-    title varchar(255),
+    `title` varchar(255),
     create_by varchar(255),
     create_time timestamp DEFAULT CURRENT_TIMESTAMP,
     modify_by varchar(255),
