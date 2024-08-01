@@ -9,17 +9,11 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>web</groupId>
-    <artifactId>main</artifactId>
+    <artifactId>learning-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>main</name>
+    <name>learning-backend</name>
     <description>Hackerthon</description>
     <url/>
-    <licenses>
-        <license/>
-    </licenses>
-    <developers>
-        <developer/>
-    </developers>
     <scm>
         <connection/>
         <developerConnection/>
@@ -30,6 +24,7 @@
         <java.version>11</java.version>
         <mysql-connector-java.version>8.0.33</mysql-connector-java.version>
         <jasypt-spring-boot-starter.version>3.0.4</jasypt-spring-boot-starter.version>
+        <dotenv.version>5.2.2</dotenv.version>
         <liquibase-core.version>4.27.0</liquibase-core.version>
         <lombok.version>1.18.30</lombok.version>
         <mapstruct-jdk8.version>1.3.0.Final</mapstruct-jdk8.version>
@@ -51,7 +46,17 @@
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
         <dependency>
@@ -79,6 +84,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>java-dotenv</artifactId>
+            <version>${dotenv.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
             <version>${liquibase-core.version}</version>
@@ -103,6 +114,7 @@
             <version>${jasypt-spring-boot-starter.version}</version>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
