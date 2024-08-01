@@ -6,7 +6,7 @@ spring:
   liquibase:
     enabled: true
     drop-first: false
-    change-log: classpath:db/changelog-master.xml
+    change-log: db/changelog/changelog-master.xml
     default-schema: public
 logging:
   file:

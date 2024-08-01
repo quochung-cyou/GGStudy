@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/learning?autoReconnect=true&useSSL=false
+    url: jdbc:mysql://localhost:3306/learning?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
     username: "admin"
     driver-class-name: com.mysql.cj.jdbc.Driver
-    password: "passwor"
+    password: "password"
   jpa:
     hibernate:
       ddl-auto: update
