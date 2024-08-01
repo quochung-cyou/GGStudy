@@ -9,6 +9,6 @@ public class AuditorAwareImpl implements AuditorAware<String> {
     private ProjectRepository projectRepository;
     @Override
     public Optional<String> getCurrentAuditor() {
-        return "admin".describeConstable();
+        return Optional.of("admin");
     }
 }
