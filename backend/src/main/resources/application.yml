@@ -7,6 +7,8 @@ logging:
   file:
     path: backend/logs
     name: app.log
+  profile:
+    active: deploy
 management:
   endpoints:
     web:

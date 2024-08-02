@@ -13,6 +13,9 @@ spring:
   liquibase:
     enabled: true
     change-log: db/changelog/changelog-master.xml
-    default-schema: public
+    default-schema: learning
 gemini:
   api-key: value
+google-search:
+  api-key: value
+  engine-id: value 

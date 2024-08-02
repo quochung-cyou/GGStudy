@@ -25,7 +25,7 @@ public class GeminiService {
 
     public Project callApi(String prompt, String geminiKey){
         String API_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=%s";
-        String apiUrl = String.format(API_URL_TEMPLATE, geminiKey);
+        String apiUrl = String.format(API_URL_TEMPLATE, "AIzaSyDUinYUBRDRHA_Kbvxor5v-SyxhLLMWgH0");
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
@@ -37,11 +37,11 @@ public class GeminiService {
             throw new RuntimeException("Failed to construct JSON request body", e);
         }
 
-        WebClient webClient = WebClient.builder()
+        WebClient webClientGemini = WebClient.builder()
                 .baseUrl(apiUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
-        String response = webClient.post()
+        String response = webClientGemini.post()
                 .uri(apiUrl)
                 .headers(httpHeaders -> httpHeaders.addAll(headers))
                 .bodyValue(requestBody)
