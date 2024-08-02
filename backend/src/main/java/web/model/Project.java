@@ -23,7 +23,7 @@ public class Project {
     @Id
     @Column(name="id")
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
 
     @Column(name="title")
     private String title;
@@ -47,14 +47,10 @@ public class Project {
     @Column(name="last_seen_slide")
     private int lastSeenSlide;
 
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
+    @OneToMany(cascade = {CascadeType.ALL})
     @JoinColumn(name="project_id")
     private List<Slide> slides;
     public Project() {
-        this.slides = new ArrayList<>();
-    }
-    public Project(String title) {
-        this.title = title;
         this.slides = new ArrayList<>();
     }
 }
