@@ -21,4 +21,8 @@ public class CustomResponse<T> implements Serializable {
     public CustomResponse(String message) {
         this.message = message;
     }
+
+    public CustomResponse(T data) {
+        this.data = data;
+    }
 }
