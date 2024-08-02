@@ -12,6 +12,8 @@ public class SlideInputFormat {
     private String slideTopicName;
     @JsonProperty("slide_type")
     private String slideType;
+    @JsonProperty("topic_name")
+    private String topicName;
     @JsonProperty("heading_title")
     private String headingTitle;
     @JsonProperty("paragraph_text")

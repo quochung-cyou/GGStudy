@@ -1,13 +1,12 @@
 package web.model;
 
 import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.UUID;
 
 @Entity
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @Table(name="elements")
@@ -15,10 +14,13 @@ public class Element {
     @Id
     @Column(name="id")
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
 
     @Column(name="slide_id")
-    private UUID slideId;
+    private String slideId;
+
+    @Column(name="template_id")
+    private String templateId;
 
     @Column(name = "element_type")
     private String elementType;
@@ -26,7 +28,10 @@ public class Element {
     @Column(name = "heading_title")
     private String headingTitle;
 
-    @Column(name = "content")
+    @Column(name = "topic_name")
+    private String topicName;
+
+    @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "layer")
@@ -47,31 +52,24 @@ public class Element {
     @Column(name = "pos_y")
     private float posY;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(name = "duration")
     private int duration;
 
-    @OneToOne(cascade= CascadeType.ALL)
-    @JoinColumn(name="element_id")
-    private Usernote usernote;
-
     public Element() {
     }
 
-    public Element(String elementType, String headingTitle, String content, int layer, int appearOrder, float sizeX, float sizeY, float posX,
-                   float posY, String imageUrl, int duration) {
+    public Element(String elementType, int layer, int appearOrder, float sizeX, float sizeY, float posX,
+                   float posY, int duration) {
         this.elementType = elementType;
-        this.headingTitle = headingTitle;
-        this.content = content;
         this.layer = layer;
         this.appearOrder = appearOrder;
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.posX = posX;
         this.posY = posY;
-        this.imageUrl = imageUrl;
         this.duration = duration;
     }
 }
