@@ -2,18 +2,6 @@ SET FOREIGN_KEY_CHECKS=0;
 
 DROP TABLE IF EXISTS template_elements;
 
-CREATE TABLE IF NOT EXISTS images (
-    id varchar(255) primary key,
-    original varchar(255),
-    large2x varchar(255),
-    large varchar(255),
-    medium varchar(255),
-    small varchar(255),
-    portrait varchar(255),
-    landscape varchar(255),
-    tiny varchar(255)
-);
-
 ALTER TABLE usernotes
     MODIFY COLUMN id varchar(255),
     MODIFY COLUMN slide_id varchar(255),
@@ -39,5 +27,8 @@ ALTER TABLE elements
 ALTER TABLE projects
     MODIFY COLUMN id varchar(255),
     MODIFY COLUMN title text;
+
+ALTER TABLE IMAGE
+    MODIFY COLUMN id varchar(255);
 
 SET FOREIGN_KEY_CHECKS=1;
