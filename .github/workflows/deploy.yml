@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - deploy
+      - test-deploy
 
 jobs:
   build:
@@ -13,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v2
         with:
           distribution: 'temurin' # or 'adopt', 'zulu', etc.
@@ -82,11 +83,8 @@ jobs:
           
           echo "Stopping old application..."
           sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no -vvv ${VPS_USER}@${VPS_IP} << EOF
-          echo "Current directory:"
-          pwd
-          echo "List of processes:"
-          ps aux
-          echo "Stopping old application..."
+          echo "Creating backup of current application..."
+          cp ~/app.jar ~/app_backup.jar
           ps aux | grep 'java -jar' | grep -v grep | awk '{print \$2}' | xargs kill -9 || true
           EOF
           
@@ -134,7 +132,19 @@ jobs:
           done
           
           if [ "$success" = false ]; then
-            echo "Health check failed after $retries attempts."
+            echo "Health check failed after $retries attempts. Rolling back to previous version..."
+            sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_IP} << EOF
+            ps aux | grep 'java -jar' | grep -v grep | awk '{print \$2}' | xargs kill -9 || true
+            mv ~/app_backup.jar ~/app.jar
+            nohup java -jar ~/app.jar --spring.profiles.active=deploy --jasypt.encryptor.password=${JASYPT_ENCRYPTOR_PASSWORD} > ~/app.log 2>&1 &
+            echo "Rolled back to previous version! Waiting for 5 seconds..."
+            sleep 5
+            echo "Application logs:"
+            tail -n 100 ~/app.log  # Output the last 100 lines of the log file
+            sleep 5
+            echo "Application logs:"
+            tail -n 100 ~/app.log  # Output the last 100 lines of the log file
+          EOF
             exit 1
           fi
           
