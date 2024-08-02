@@ -1,5 +1,6 @@
 package web.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import web.model.*;
@@ -10,7 +11,9 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/v1/projects")
 public class ProjectController {
+    @Autowired
     private ProjectService projectService;
+
     public ProjectController(ProjectService projectService) {this.projectService = projectService;}
     @GetMapping("")
     public List<Project> findAll() {
@@ -18,11 +21,11 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}")
-    public Project findById(@PathVariable UUID id){return projectService.findById(id);}
+    public Project findById(@PathVariable UUID id){return projectService.findByUUIdString(String.valueOf(id));}
 
     @PostMapping("")
-    public List<Project> createProject(@RequestBody GeminiJsonFormat geminiJsonFormat){
-        return projectService.createProjectsFromGemini(geminiJsonFormat);
+    public Project createProject(@RequestBody ProjectInputFormat projectInputFormat){
+        return projectService.createProjectsFromGemini(projectInputFormat);
     }
     @PutMapping("")
     public Project updateProject(@RequestBody Project theProject){

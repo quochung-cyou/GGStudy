@@ -1,22 +1,21 @@
 package web.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import web.dao.ProjectRepository;
 import web.dao.TemplateRepository;
 import web.model.*;
-import java.util.ArrayList;
+
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-import static web.utils.Constaints.*;
+import static web.utils.Constants.*;
 
 @Service
 public class ProjectServiceImpl implements ProjectService{
     private enum ContentType {TEXT, IMAGE};
     private final ProjectRepository projectRepository;
     private final TemplateRepository templateRepository;
-
     public ProjectServiceImpl(ProjectRepository projectRepository, TemplateRepository templateRepository) {
         this.projectRepository = projectRepository;
         this.templateRepository = templateRepository;
@@ -28,36 +27,34 @@ public class ProjectServiceImpl implements ProjectService{
     }
 
     @Override
-    public Project findById(UUID id) {
-        return projectRepository.findById(id).get();
-    }
+    public Project findByUUIdString(String format){return projectRepository.findByUUIdString(format);}
 
     @Override
-    public List<Project> createProjectsFromGemini(GeminiJsonFormat geminiJsonFormat) {
-        List<Project> theProjects = new ArrayList<>();
-        for(ProjectInputFormat gemminiProject : geminiJsonFormat.getProjects()){
-            Project theProject = new Project(gemminiProject.getProjectTitle());
-            for(SlideInputFormat geminiSlide : gemminiProject.getSlides()) {
-                Slide theSlide = new Slide();
-                switch (geminiSlide.getSlideType()) {
-                    case TEXT_ONLY: {
-                        textOnlyTemplateProcess(theSlide,geminiSlide);
-                        break;
-                    }
-                    case ONE_IMAGE_AND_TEXT: {
-                        oneImageAndTextTemplateProcess(theSlide,geminiSlide);
-                        break;
-                    }
-                    case TWO_IMAGES_AND_TEXT_TEMPLATE_ID: twoImagesAndTextTemplateProcess(theSlide,geminiSlide);
-                    default: throw new RuntimeException("Slide template not found - " + geminiSlide.getSlideType());
+    public Project createProjectsFromGemini(ProjectInputFormat projectInputFormat) {
+        Project theProject = new Project();
+        for(SlideInputFormat geminiSlide : projectInputFormat.getSlides()) {
+            Slide theSlide = new Slide();
+            theSlide.setTopicName(geminiSlide.getTopicName());
+            theSlide.setHeadingTitle(geminiSlide.getHeadingTitle());
+            switch (geminiSlide.getSlideType()) {
+                case "TEXT_ONLY": {
+                    textOnlyTemplateProcess(theSlide,geminiSlide);
+                    break;
                 }
-                theSlide.setProjectId(theProject.getId());
-                theProject.getSlides().add(theSlide);
+                case "ONE_IMAGE_AND_TEXT": {
+                    oneImageAndTextTemplateProcess(theSlide,geminiSlide);
+                    break;
+                }
+                case "TWO_IMAGES_AND_TEXT": {
+                    twoImagesAndTextTemplateProcess(theSlide,geminiSlide);
+                    break;
+                }
+                default: throw new RuntimeException("Slide template not found - " + geminiSlide.getSlideType());
             }
-            projectRepository.save(theProject);
-            theProjects.add(theProject);
+            theProject.getSlides().add(theSlide);
         }
-        return theProjects;
+        projectRepository.save(theProject);
+        return theProject;
     }
 
     @Override
@@ -66,79 +63,76 @@ public class ProjectServiceImpl implements ProjectService{
     }
     @Override
     public void deleteById(UUID id) {
-        Optional<Project> project = projectRepository.findById(id);
+        Project project = projectRepository.findByUUIdString(String.valueOf(id));
         if(project == null) throw new RuntimeException("Project not found - " + id);
-        projectRepository.delete(project.get());
+        projectRepository.delete(project);
     }
     private void textOnlyTemplateProcess(Slide theSlide, SlideInputFormat geminiSlide) {
-        Template onlyTextTemplate = templateRepository.findById(TEXT_ONLY_TEMPLATE_ID).get();
-        theSlide.setTemplate(onlyTextTemplate);
-        for(TemplateElement templateElement : onlyTextTemplate.getTemplateElements()){
-            Element newSlideElement = templateElement.getElement();
-            newSlideElement.setSlideId(theSlide.getId());
+        Template onlyTextTemplate = templateRepository.findByUUIdString(TEXT_ONLY_TEMPLATE_ID);
+        for(Element templateElement : onlyTextTemplate.getElements()){
+            Element newSlideElement = extractTemplateElement(templateElement);
+            newSlideElement.setTopicName(geminiSlide.getTopicName());
             newSlideElement.setHeadingTitle(geminiSlide.getHeadingTitle());
-            newSlideElement.setContent(geminiSlide.getParagraphText());
+            newSlideElement.setContent(geminiSlide.getSlideTopicName());
             theSlide.getElements().add(newSlideElement);
         }
     }
     private void oneImageAndTextTemplateProcess(Slide theSlide, SlideInputFormat geminiSlide) {
-        Template oneImageTemplate = templateRepository.findById(ONE_IMAGE_AND_TEXT_TEMPLATE_ID).get();
-        theSlide.setTemplate(oneImageTemplate);
-        for(TemplateElement templateElement : oneImageTemplate.getTemplateElements()){
-            Element elementFromTemplate = templateElement.getElement();
-            Element newSlideElement = null;
-            if(elementFromTemplate.getElementType().equals(ContentType.TEXT.toString())){
-                newSlideElement = templateElement.getElement();
-                newSlideElement.setId(null);
+        Template oneImageTemplate = templateRepository.findByUUIdString(ONE_IMAGE_AND_TEXT_TEMPLATE_ID);
+        for(Element templateElement : oneImageTemplate.getElements()){
+            Element newSlideElement = extractTemplateElement(templateElement);
+            if(templateElement.getElementType().equals(ContentType.TEXT.toString())){
+                newSlideElement.setTopicName(geminiSlide.getTopicName());
                 newSlideElement.setHeadingTitle(geminiSlide.getHeadingTitle());
                 newSlideElement.setContent(geminiSlide.getParagraphText());
-                theSlide.getElements().add(newSlideElement);
             }
-            else if(elementFromTemplate.getElementType().equals(ContentType.IMAGE.toString())){
-                newSlideElement = templateElement.getElement();
-                newSlideElement.setId(null);
+            else if(templateElement.getElementType().equals(ContentType.IMAGE.toString())){
                 newSlideElement.setHeadingTitle(geminiSlide.getHeadingTitle());
                 newSlideElement.setContent(geminiSlide.getParagraphText());
                 newSlideElement.setImageUrl(geminiSlide.getSingleImageUrl());
-                theSlide.getElements().add(newSlideElement);
             }
-            newSlideElement.setSlideId(theSlide.getId());
             theSlide.getElements().add(newSlideElement);
         }
     }
     private void twoImagesAndTextTemplateProcess(Slide theSlide, SlideInputFormat geminiSlide) {
-        Template twoImagesTemplate = templateRepository.findById(TWO_IMAGES_AND_TEXT_TEMPLATE_ID).get();
-        theSlide.setTemplate(twoImagesTemplate);
+        Template twoImagesTemplate = templateRepository.findByUUIdString(TWO_IMAGES_AND_TEXT_TEMPLATE_ID);
         for(int templateElementIndex = 0; templateElementIndex < 3; templateElementIndex++) {
-            TemplateElement templateElement = twoImagesTemplate.getTemplateElements().get(templateElementIndex);
-            Element newSlideElement = null;
-            if (templateElement.getElement().getElementType().equals(ContentType.TEXT.toString())) {
-                newSlideElement = templateElement.getElement();
-                newSlideElement.setId(null);
+            Element templateElement = twoImagesTemplate.getElements().get(templateElementIndex);
+            Element newSlideElement = extractTemplateElement(templateElement);
+            if (templateElement.getElementType().equals(ContentType.TEXT.toString())) {
+                newSlideElement.setTopicName(geminiSlide.getTopicName());
                 newSlideElement.setHeadingTitle(geminiSlide.getHeadingTitle());
                 newSlideElement.setContent(geminiSlide.getParagraphText());
-                theSlide.getElements().add(newSlideElement);
             }
-            else if(templateElement.getElement().getElementType().equals(ContentType.IMAGE.toString())
+            else if(templateElement.getElementType().equals(ContentType.IMAGE.toString())
                     && templateElementIndex == 1){
-                newSlideElement = templateElement.getElement();
-                newSlideElement.setId(null);
                 newSlideElement.setHeadingTitle(geminiSlide.getFirstImageTitle());
                 newSlideElement.setContent(geminiSlide.getFirstImageText());
                 newSlideElement.setImageUrl(geminiSlide.getFirstImageUrl());
-                theSlide.getElements().add(newSlideElement);
             }
-            else if(templateElement.getElement().getElementType().equals(ContentType.IMAGE.toString())
+            else if(templateElement.getElementType().equals(ContentType.IMAGE.toString())
                     && templateElementIndex == 2) {
-                newSlideElement = templateElement.getElement();
-                newSlideElement.setId(null);
                 newSlideElement.setHeadingTitle(geminiSlide.getSecondImageTitle());
                 newSlideElement.setContent(geminiSlide.getSecondImageText());
                 newSlideElement.setImageUrl(geminiSlide.getSecondImageUrl());
                 theSlide.getElements().add(newSlideElement);
             }
-            newSlideElement.setSlideId(theSlide.getId());
             theSlide.getElements().add(newSlideElement);
         }
     }
+
+    private Element extractTemplateElement(Element templateElement){
+        return new Element(
+                templateElement.getElementType(),
+                templateElement.getLayer(),
+                templateElement.getAppearOrder(),
+                templateElement.getSizeX(),
+                templateElement.getSizeY(),
+                templateElement.getPosX(),
+                templateElement.getPosY(),
+                templateElement.getDuration()
+        );
+    }
 }
+
+

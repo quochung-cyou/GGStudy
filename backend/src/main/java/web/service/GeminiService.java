@@ -1,13 +1,13 @@
 package web.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
-import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import web.configuration.AppConfig;
 
 import java.io.IOException;
 
@@ -18,7 +18,7 @@ public class GeminiService {
     private ObjectMapper objectMapper;
 
     public String callApi(String prompt, String geminiKey){
-        String API_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=%s";
+        String API_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=%s";
         String apiUrl = String.format(API_URL_TEMPLATE, geminiKey);
 
         HttpHeaders headers = new HttpHeaders();
@@ -50,17 +50,11 @@ public class GeminiService {
             JsonNode rootNode = objectMapper.readTree(jsonString);
             JsonNode text = rootNode.path("candidates").get(0).path("content").path("parts").get(0);
             StringBuilder str = new StringBuilder(text.path("text").asText());
-            System.out.println(str);
-            String json = "```json\n{\n  \"chapters\": ";
+            String json = "```json\n";
             str.delete(0, json.length());
-            String endJson = "}\n```";
+            String endJson = "\n```\n";
             str.delete(str.length() - endJson.length(), str.length());
-            String spaces = "  ";
-            for (int i=0;i<str.length();i++){
-                if (str.charAt(i) == '}' || str.charAt(i) == '{' || str.charAt(i) == ']'){
-                    str.delete(i-spaces.length(), i);
-                }
-            }
+            System.out.println(str);
             return str.toString();
         } catch (IOException e) {
             e.printStackTrace();
