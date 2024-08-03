@@ -1,0 +1,152 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - deploy
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin' # or 'adopt', 'zulu', etc.
+          java-version: '17'
+
+      - name: Create log directory for dry run
+        run: |
+          mkdir -p backend/logs
+          touch backend/logs/app.log
+          
+
+      - name: Set up SSH
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_IP: ${{ secrets.VPS_IP }}
+        run: |
+          # Create a temporary SSH config file with password authentication
+          mkdir -p ~/.ssh
+          echo "Host ${VPS_IP}
+          HostName ${VPS_IP}
+          User ${VPS_USER}
+          PasswordAuthentication yes
+          " > ~/.ssh/config
+      
+          # Add the server to known_hosts to avoid host verification issues
+          ssh-keyscan -H ${VPS_IP} >> ~/.ssh/known_hosts
+      
+          # Test SSH connection using the password (non-interactive)
+          sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_IP} 'echo "SSH connection successful"'
+
+      - name: Build with Maven
+        env:
+          JASYPT_ENCRYPTOR_PASSWORD: ${{ secrets.JASYPT_ENCRYPTOR_PASSWORD }}
+        run: |
+          cd backend
+          mvn clean package -Dspring.profiles.active=package -Djasypt.encryptor.password=${JASYPT_ENCRYPTOR_PASSWORD}
+          
+
+      - name: Deploy to VPS
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_IP: ${{ secrets.VPS_IP }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          JASYPT_ENCRYPTOR_PASSWORD: ${{ secrets.JASYPT_ENCRYPTOR_PASSWORD }}
+        run: |
+          cd backend
+          # Ensure sshpass is installed (adjust according to the runner environment)
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+          
+          # Create SSH config to support password authentication
+          mkdir -p ~/.ssh
+          echo "Host ${VPS_IP}
+          HostName ${VPS_IP}
+          User ${VPS_USER}
+          PasswordAuthentication yes
+          " > ~/.ssh/config
+          
+          # Add the server to known_hosts to avoid host verification issues
+          ssh-keyscan -H ${VPS_IP} >> ~/.ssh/known_hosts
+          
+          echo "Stopping old application..."
+          sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no -vvv ${VPS_USER}@${VPS_IP} << EOF
+          echo "Creating backup of current application..."
+          cp ~/app.jar ~/app_backup.jar
+          ps aux | grep 'java -jar' | grep -v grep | awk '{print \$2}' | xargs kill -9 || true
+          EOF
+          
+          
+          echo "Deploying new application..."
+          sshpass -p "${SSH_PASSWORD}" scp -o StrictHostKeyChecking=no target/*.jar ${VPS_USER}@${VPS_IP}:~/app.jar
+              
+          echo "Starting new application..."
+          sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_IP} << EOF
+          nohup java -jar ~/app.jar --spring.profiles.active=deploy --jasypt.encryptor.password=${JASYPT_ENCRYPTOR_PASSWORD}  > ~/app.log 2>&1 &
+          echo "Application started! Waiting for 5 seconds..."
+          sleep 5
+          echo "Application logs:"
+          tail -n 100 ~/app.log  # Output the last 100 lines of the log file
+          sleep 5
+          echo "Application logs:"
+          tail -n 100 ~/app.log  # Output the last 100 lines of the log file
+          EOF
+
+      - name: Health Check
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_IP: ${{ secrets.VPS_IP }}
+        run: |
+          echo "Waiting for application to start..."
+          sleep 30
+          
+          retries=10
+          success=false
+          
+          for i in $(seq 1 $retries); do
+            echo "Health check attempt $i..."
+            response=$(sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_IP} 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health')
+            echo "HTTP response code: $response, body: $(sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_IP} 'curl -s http://localhost:8080/actuator/health')"
+          
+            if [ "$response" -eq 200 ]; then
+              echo "Health check successful!"
+              success=true
+              break
+            else
+              echo "Health check failed, retrying in 5 seconds..."
+              sleep 5
+            fi
+          done
+          
+          if [ "$success" = false ]; then
+            echo "Health check failed after $retries attempts. Rolling back to previous version..."
+            sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_IP} << EOF
+            ps aux | grep 'java -jar' | grep -v grep | awk '{print \$2}' | xargs kill -9 || true
+            mv ~/app_backup.jar ~/app.jar
+            nohup java -jar ~/app.jar --spring.profiles.active=deploy --jasypt.encryptor.password=${JASYPT_ENCRYPTOR_PASSWORD} > ~/app.log 2>&1 &
+            echo "Rolled back to previous version! Waiting for 5 seconds..."
+            sleep 5
+            echo "Application logs:"
+            tail -n 100 ~/app.log  # Output the last 100 lines of the log file
+            sleep 5
+            echo "Application logs:"
+            tail -n 100 ~/app.log  # Output the last 100 lines of the log file
+            EOF
+            exit 1
+          fi
+          
+          echo "Application deployed successfully!"
+    
+    
