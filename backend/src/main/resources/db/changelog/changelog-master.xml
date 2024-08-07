@@ -5,4 +5,9 @@
     <changeSet id="001_create_tables.sql" author="NguyenBui256" dbms="mysql">
         <sqlFile path="db/changelog/001_create_tables.sql"/>
     </changeSet>
+
+    <changeSet id="002_modify_tables.sql" author="NguyenBui256" dbms="mysql">
+        <sqlFile path="db/changelog/002_modify_tables.sql"/>
+    </changeSet>
 </databaseChangeLog>
+

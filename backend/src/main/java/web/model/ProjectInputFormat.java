@@ -9,8 +9,6 @@ import java.util.List;
 @Setter
 @Getter
 public class ProjectInputFormat {
-    @JsonProperty("topic_name")
-    private String projectTitle;
-    @JsonProperty("slides")
+    @JsonProperty("chapters")
     private List<SlideInputFormat> slides;
 }
