@@ -5,15 +5,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.reactive.function.client.WebClient;
-import web.controller.ProjectController;
 import web.model.Project;
 import web.model.ProjectInputFormat;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class GeminiService {
@@ -23,7 +28,18 @@ public class GeminiService {
     @Autowired
     private ProjectService projectService;
 
-    public Project callApi(String prompt, String geminiKey){
+    @Autowired
+    private ResourceLoader loader;
+
+    @Value("${gemini.api-key}")
+    private String geminiKey;
+
+    public Project callApi(String promptPath) throws IOException {
+        Resource resource = loader.getResource("classpath:" + promptPath);
+        InputStream input = resource.getInputStream();
+        byte[] buffer = FileCopyUtils.copyToByteArray(input);
+        String prompt = new String(buffer, StandardCharsets.UTF_8);
+
         String API_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=%s";
         String apiUrl = String.format(API_URL_TEMPLATE, geminiKey);
 
@@ -56,7 +72,8 @@ public class GeminiService {
         }
     }
 
-    private String formatString(String jsonString){
+    private String formatString(String jsonString) {
+        System.out.println(jsonString);
         try {
             JsonNode rootNode = objectMapper.readTree(jsonString);
             JsonNode text = rootNode.path("candidates").get(0).path("content").path("parts").get(0);
@@ -72,7 +89,7 @@ public class GeminiService {
         return null;
     }
 
-    private ObjectNode makeBodyRequest(ObjectMapper objectMapper, String prompt){
+    private ObjectNode makeBodyRequest(ObjectMapper objectMapper, String prompt) {
         ObjectNode contentNode = objectMapper.createObjectNode();
         ObjectNode partsNode = objectMapper.createObjectNode();
         partsNode.put("text", prompt);
