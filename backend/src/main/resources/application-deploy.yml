@@ -6,14 +6,13 @@ spring:
     password: ENC(TVd8jt3OBmkbtLFhytsLKMX97SxESPiryQWviK37iDfEFMNcfhr25XMIdwvLd0iT2GrmAt1qAwc+8RfPjfrPvw==)
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
   liquibase:
     enabled: true
-    drop-first: false
     change-log: db/changelog/changelog-master.xml
     default-schema: public
 jasypt:

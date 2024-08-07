@@ -2,11 +2,11 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
-    <changeSet id="001_create_tables.sql" author="NguyenBui256" dbms="mysql">
+    <changeSet id="001_create_tables.sql" author="NguyenBui256" dbms="mysql" onValidationFail="HALT" failOnError="true">
         <sqlFile path="db/changelog/001_create_tables.sql"/>
     </changeSet>
 
-    <changeSet id="002_modify_tables.sql" author="NguyenBui256" dbms="mysql">
+    <changeSet id="002_modify_tables.sql" author="NguyenBui256" dbms="mysql" onValidationFail="HALT" failOnError="true">
         <sqlFile path="db/changelog/002_modify_tables.sql"/>
     </changeSet>
 </databaseChangeLog>
