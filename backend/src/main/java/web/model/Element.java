@@ -28,7 +28,7 @@ public class Element {
     @Column(name = "heading_title")
     private String headingTitle;
 
-    @Column(name = "topic_name")
+    @Column(name = "topic_name", columnDefinition = "TEXT")
     private String topicName;
 
     @Column(name = "content", columnDefinition = "TEXT")
