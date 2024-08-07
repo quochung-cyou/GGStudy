@@ -14,13 +14,16 @@ import java.util.UUID;
 public class Template {
     @Id
     @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
 
     @Column(name="template_type")
-    private UUID templateType;
+    private String templateType;
 
     @OneToMany()
     @JoinColumn(name="template_id")
-    private List<TemplateElement> templateElements;
+    private List<Slide> slides;
+
+    @OneToMany
+    @JoinColumn(name="template_id")
+    private List<Element> elements;
 }
