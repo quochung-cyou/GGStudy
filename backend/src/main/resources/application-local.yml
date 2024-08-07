@@ -15,4 +15,4 @@ spring:
     change-log: db/changelog/changelog-master.xml
     default-schema: public
 gemini:
-  api-key: value
+  api-key: AIzaSyBsc-SmYaqPXDvc8Zfd5URSmV3YU7pJr5s

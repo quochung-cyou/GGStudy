@@ -2,24 +2,25 @@ package web.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.UUID;
+import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Getter
 @Setter
-@Table(name="elements")
+@NoArgsConstructor
+@Table(name = "elements")
 public class Element {
     @Id
-    @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     private String id;
 
-    @Column(name="slide_id")
+    @Column(name = "slide_id")
     private String slideId;
 
-    @Column(name="template_id")
+    @Column(name = "template_id")
     private String templateId;
 
     @Column(name = "element_type")
@@ -57,19 +58,4 @@ public class Element {
 
     @Column(name = "duration")
     private int duration;
-
-    public Element() {
-    }
-
-    public Element(String elementType, int layer, int appearOrder, float sizeX, float sizeY, float posX,
-                   float posY, int duration) {
-        this.elementType = elementType;
-        this.layer = layer;
-        this.appearOrder = appearOrder;
-        this.sizeX = sizeX;
-        this.sizeY = sizeY;
-        this.posX = posX;
-        this.posY = posY;
-        this.duration = duration;
-    }
 }
