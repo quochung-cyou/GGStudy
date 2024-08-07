@@ -17,11 +17,12 @@ public class Usernote {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
     @Column(name="slide_id")
-    private UUID slideId;
-    @Column(name="element_id")
-    private UUID elementId;
+    private String slideId;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name="id")
+    private Element element;
     @Column(name="create_by")
     private String createBy;
     @Column(name="modify_by")
@@ -30,6 +31,6 @@ public class Usernote {
     private Timestamp createTime;
     @Column(name="modify_time")
     private Timestamp modifyTime;
-    @Column(name="content")
+    @Column(name="content", columnDefinition = "TEXT")
     private String content;
 }
