@@ -1,6 +1,8 @@
 package web.service;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import web.dao.ProjectRepository;
 import web.dao.TemplateRepository;
@@ -28,8 +30,8 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public List<Project> findAll() {
-        return projectRepository.findAll();
+    public Page<Project> findAll(PageRequest pageable) {
+        return projectRepository.findAll(pageable);
     }
 
     @Override
