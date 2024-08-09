@@ -19,6 +19,11 @@ public class SlideServiceImpl implements SlideService {
     }
 
     @Override
+    public List<Slide> findByProjectId(String projectId) {
+        return slideRepository.findByProjectId(projectId);
+    }
+
+    @Override
     public Slide findById(String id) {
         return slideRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Did not find employee id - " + id));
