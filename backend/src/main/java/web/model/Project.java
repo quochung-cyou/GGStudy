@@ -47,7 +47,7 @@ public class Project {
     @Column(name = "last_seen_slide")
     private int lastSeenSlide;
 
-    @OneToMany(cascade = {CascadeType.ALL})
+    @OneToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", referencedColumnName = "id")
     private List<Slide> slides;
 

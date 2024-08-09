@@ -1,5 +1,6 @@
 package web.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,6 +25,7 @@ public class Usernote {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "id")
+    @JsonIgnore
     private Element element;
 
     @Column(name = "create_by")
