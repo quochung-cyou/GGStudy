@@ -1,14 +1,27 @@
 package web.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.*;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileCopyUtils;
 import web.dao.ProjectRepository;
 import web.dao.TemplateRepository;
 import web.dto.ProjectDTO;
 import web.model.*;
 
 import java.util.ArrayList;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -16,19 +29,19 @@ import java.util.Random;
 import static web.utils.Constants.*;
 
 @Service
+@RequiredArgsConstructor
 public class ProjectServiceImpl implements ProjectService {
+
+    public static final String BASIC_PROMPT_PATH = "classpath:data/prompt.txt";
+
     private enum ContentType {TEXT, IMAGE}
 
-    ;
     private final ProjectRepository projectRepository;
     private final TemplateRepository templateRepository;
+    private final GeminiService geminiService;
+    private final ObjectMapper objectMapper;
+    private final ResourceLoader loader;
     private final Random random;
-
-    public ProjectServiceImpl(ProjectRepository projectRepository, TemplateRepository templateRepository) {
-        this.projectRepository = projectRepository;
-        this.templateRepository = templateRepository;
-        this.random = new Random();
-    }
 
     @Override
     public Page<ProjectDTO> findAll(int size, int page, String sortBy) {
@@ -50,8 +63,36 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public Project createProjectsFromGemini(ProjectInputFormat projectInputFormat) {
+    public Project createProjectsFromGemini(String topicName, String additionalInfo) throws IOException {
+        String prompt = constructTopicPrompt(topicName, additionalInfo);
+        String response = geminiService.getDataFromPrompt(prompt);
+
+
+        var projectInputFormat = objectMapper.readValue(formatString(response), ProjectInputFormat.class);
         Project theProject = new Project();
+        extractSlide(projectInputFormat, theProject);
+        projectRepository.save(theProject);
+        System.out.println("Slides saved successfully");
+        return theProject;
+    }
+
+    @NotNull
+    private String constructTopicPrompt(String topicName, String additionalInfo) throws IOException {
+        String prompt = getPromptFromFile(BASIC_PROMPT_PATH);
+        prompt = prompt.replace("{{topic_name}}", topicName);
+        prompt = prompt.replace("{{additional_info}}", additionalInfo);
+        return prompt;
+    }
+
+    @NotNull
+    private String getPromptFromFile(String path) throws IOException {
+        Resource resource = loader.getResource(path);
+        InputStream input = resource.getInputStream();
+        byte[] buffer = FileCopyUtils.copyToByteArray(input);
+        return new String(buffer, StandardCharsets.UTF_8);
+    }
+
+    private void extractSlide(ProjectInputFormat projectInputFormat, Project theProject) {
         for (SlideInputFormat geminiSlide : projectInputFormat.getSlides()) {
             Slide theSlide = new Slide();
             theSlide.setTopicName(geminiSlide.getTopicName());
@@ -75,10 +116,19 @@ public class ProjectServiceImpl implements ProjectService {
             theSlide.setProject(theProject);
             theProject.getSlides().add(theSlide);
         }
-        projectRepository.save(theProject);
-        System.out.println("Slides saved successfully");
-        return theProject;
     }
+
+    private String formatString(String jsonString) throws JsonProcessingException {
+        JsonNode rootNode = objectMapper.readTree(jsonString);
+        JsonNode text = rootNode.path("candidates").get(0).path("content").path("parts").get(0);
+        StringBuilder str = new StringBuilder(text.path("text").asText());
+        String json = "```json\n";
+        str.delete(0, json.length());
+        String endJson = "\n```";
+        str.delete(str.length() - endJson.length(), str.length());
+        return str.toString();
+    }
+
 
     @Override
     public Project save(Project theProject) {
@@ -100,6 +150,8 @@ public class ProjectServiceImpl implements ProjectService {
             newSlideElement.setTopicName(geminiSlide.getTopicName());
             newSlideElement.setHeadingTitle(geminiSlide.getHeadingTitle());
             newSlideElement.setContent(geminiSlide.getSlideTopicName());
+            newSlideElement.setSlideId(theSlide.getId());
+            newSlideElement.setTemplateId(onlyTextTemplate.getId());
             theSlide.getElements().add(newSlideElement);
         }
         theSlide.setTemplate(onlyTextTemplate);
@@ -119,6 +171,8 @@ public class ProjectServiceImpl implements ProjectService {
                 newSlideElement.setContent(geminiSlide.getParagraphText());
                 newSlideElement.setImageUrl(geminiSlide.getSingleImageUrl());
             }
+            newSlideElement.setSlideId(theSlide.getId());
+            newSlideElement.setTemplateId(oneImageTemplate.getId());
             theSlide.setTemplate(oneImageTemplate);
             theSlide.getElements().add(newSlideElement);
         }
@@ -147,6 +201,8 @@ public class ProjectServiceImpl implements ProjectService {
                     newSlideElement.setImageUrl(geminiSlide.getSecondImageUrl());
                 }
             }
+            newSlideElement.setSlideId(theSlide.getId());
+            newSlideElement.setTemplateId(twoImagesTemplate.getId());
             theSlide.setTemplate(twoImagesTemplate);
             theSlide.getElements().add(newSlideElement);
         }
