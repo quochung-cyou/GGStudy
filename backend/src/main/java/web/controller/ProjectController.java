@@ -1,20 +1,16 @@
 package web.controller;
 
-import com.fasterxml.jackson.annotation.JsonView;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import web.dto.ProjectDTO;
 import web.model.Project;
-import web.model.View;
 import web.service.GeminiService;
 import web.service.ProjectService;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/v1/projects")
@@ -30,16 +26,14 @@ public class ProjectController {
         this.projectService = projectService;
     }
 
-    @JsonView(View.SummaryProject.class)
     @GetMapping("")
-    public Page<Project> findAll(
+    public Page<ProjectDTO> findAll(
             @RequestParam(required = false, defaultValue = "20") Integer size,
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "id") String sortBy) {
-        return projectService.findAll(PageRequest.of(page < 0 ? 0 : page, size > 20 ? 20 : size, Sort.Direction.ASC, sortBy));
+        return projectService.findAll(size, page, sortBy);
     }
 
-    @JsonView(View.FullProject.class)
     @GetMapping("/{id}")
     public Project findById(@PathVariable String id) {
         return projectService.findById(id);

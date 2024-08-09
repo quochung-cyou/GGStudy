@@ -26,40 +26,32 @@ public class Project {
     @Id
     @GeneratedValue
     @UuidGenerator(style = UuidGenerator.Style.TIME)
-    @JsonView(View.SummaryProject.class)
     private String id;
 
     @Column(name = "title")
-    @JsonView(View.SummaryProject.class)
     private String title;
 
     @Column(name = "create_by")
     @CreatedBy
-    @JsonView(View.SummaryProject.class)
     private String createBy;
 
     @Column(name = "modify_by")
     @LastModifiedBy
-    @JsonView(View.SummaryProject.class)
     private String modifyBy;
 
     @Column(name = "create_time")
     @CreatedDate
-    @JsonView(View.SummaryProject.class)
     private Timestamp createTime;
 
     @Column(name = "modify_time")
     @LastModifiedDate
-    @JsonView(View.SummaryProject.class)
     private Timestamp modifyTime;
 
     @Column(name = "last_seen_slide")
-    @JsonView(View.SummaryProject.class)
     private int lastSeenSlide;
 
     @OneToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", referencedColumnName = "id")
-    @JsonView(View.FullProject.class)
     private List<Slide> slides;
 
     public Project() {

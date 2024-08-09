@@ -1,13 +1,14 @@
 package web.service;
 
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import web.dao.ProjectRepository;
 import web.dao.TemplateRepository;
+import web.dto.ProjectDTO;
 import web.model.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -30,8 +31,15 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public Page<Project> findAll(PageRequest pageable) {
-        return projectRepository.findAll(pageable);
+    public Page<ProjectDTO> findAll(int size, int page, String sortBy) {
+        Pageable pageable = PageRequest.of(Math.max(page,0), Math.min(Math.max(size,1), 20), Sort.Direction.ASC, sortBy);
+        List<Project> projectList = projectRepository.findAll();
+        List<ProjectDTO> projectDTOList = new ArrayList<>();
+        for(Project project : projectList) {
+            ProjectDTO projectDTO = new ProjectDTO(project);
+            projectDTOList.add(projectDTO);
+        }
+        return new PageImpl<>(projectDTOList, pageable, projectDTOList.size());
     }
 
     @Override
