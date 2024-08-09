@@ -38,7 +38,7 @@ public class Slide {
     @JoinColumn(name = "slide_id")
     private List<Element> elements;
 
-    @OneToMany(cascade = {CascadeType.ALL})
+    @OneToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY)
     @JoinColumn(name = "slide_id")
     private List<Usernote> usernotes;
 

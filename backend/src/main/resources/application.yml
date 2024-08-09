@@ -15,3 +15,7 @@ management:
   endpoint:
     health:
       show-details: always
+springdoc:
+  swagger-ui:
+    disable-swagger-default-url: true
+    path: /api-docs
