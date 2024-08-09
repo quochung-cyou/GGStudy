@@ -1,32 +1,21 @@
 package web.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import web.model.Project;
-import web.service.GeminiService;
 import web.service.ProjectService;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/v1/projects")
+@RequiredArgsConstructor
 public class ProjectController {
-    @Autowired
-    private ProjectService projectService;
-
-    @Autowired
-    GeminiService geminiService;
-
-
-    public ProjectController(ProjectService projectService) {
-        this.projectService = projectService;
-    }
+    private final ProjectService projectService;
 
     @GetMapping("")
     public Page<Project> findAll(
@@ -41,9 +30,10 @@ public class ProjectController {
         return projectService.findById(id);
     }
 
-    @PostMapping("")
-    public Project createProject() throws IOException {
-        return geminiService.callApi("data/prompt.txt");
+    @PostMapping
+    public Project createProject(@RequestParam String topicName,
+                                 @RequestParam(required = false, defaultValue = "") String additionalInfo) throws IOException {
+        return projectService.createProjectsFromGemini(topicName, additionalInfo);
     }
 
     @PutMapping("")
