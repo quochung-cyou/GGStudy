@@ -20,3 +20,4 @@ jasypt:
     password: ${JASYPT_ENCRYPTOR_PASSWORD}
 gemini:
   api-key: ENC(0jI2pVETIXx/nQP4Gx3mVVjUX8PNIiAHOa2eemXalu8zsSw02bUYCzUAiogn5S5plYKLU3YBidGG35b6T+uSX8AWo1Izi6usOr0/q5J+czdJPb0Na4iIApj9rOg8OThjdWmZebikeg9L8GDAL0hMzJ3ZHulwIB5hjTILmfWnNBIARRXavjefhLgkXv2+yktMoj586OBNnwTFgNI1InYDLA==)
+
