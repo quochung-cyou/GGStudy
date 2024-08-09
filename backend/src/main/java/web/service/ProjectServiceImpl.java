@@ -47,6 +47,7 @@ public class ProjectServiceImpl implements ProjectService {
     public Page<ProjectDTO> findAll(int size, int page, String sortBy) {
         Pageable pageable = PageRequest.of(Math.max(page,0), Math.min(Math.max(size,1), 20), Sort.Direction.ASC, sortBy);
         List<Project> projectList = projectRepository.findAll();
+        if(projectList.isEmpty()) throw new NotFoundException("No project found.");
         List<ProjectDTO> projectDTOList = new ArrayList<>();
         for(Project project : projectList) {
             ProjectDTO projectDTO = new ProjectDTO(project);
@@ -57,9 +58,8 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Project findById(String id) {
-        Optional<Project> project = projectRepository.findById(id);
-        if (project.isEmpty()) throw new RuntimeException("Project not found - " + id);
-        return project.get();
+        return projectRepository.findById(id)
+                .orElseThrow(()-> new NotFoundException("Project not found with the given ID."));
     }
 
     @Override
@@ -72,7 +72,6 @@ public class ProjectServiceImpl implements ProjectService {
         Project theProject = new Project();
         extractSlide(projectInputFormat, theProject);
         projectRepository.save(theProject);
-        System.out.println("Slides saved successfully");
         return theProject;
     }
 
@@ -111,7 +110,7 @@ public class ProjectServiceImpl implements ProjectService {
                     break;
                 }
                 default:
-                    throw new RuntimeException("Slide template not found - " + geminiSlide.getSlideType());
+                    throw new NotFoundException("Slide template not found - " + geminiSlide.getSlideType());
             }
             theSlide.setProject(theProject);
             theProject.getSlides().add(theSlide);
@@ -138,7 +137,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void deleteById(String id) {
         Optional<Project> project = projectRepository.findById(id);
-        if (project.isEmpty()) throw new RuntimeException("Project not found - " + id);
+        if (project.isEmpty()) throw new NotFoundException("Project not found with the given ID.");
         projectRepository.delete(project.get());
     }
 

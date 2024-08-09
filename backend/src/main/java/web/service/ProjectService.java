@@ -5,6 +5,8 @@ import org.springframework.data.domain.PageRequest;
 import web.dto.ProjectDTO;
 import web.model.Project;
 
+import java.io.IOException;
+
 
 public interface ProjectService {
     Page<ProjectDTO> findAll(int size, int page, String sortBy);
