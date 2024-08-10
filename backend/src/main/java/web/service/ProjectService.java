@@ -1,17 +1,21 @@
 package web.service;
 
-import web.model.GeminiJsonFormat;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import web.model.Project;
-import web.model.Template;
 
-import java.util.List;
-import java.util.UUID;
+import java.io.IOException;
 
 
 public interface ProjectService {
-    List<Project> findAll();
-    Project findById(UUID id);
-    List<Project> createProjectsFromGemini(GeminiJsonFormat geminiJsonFormat);
+    Page<Project> findAll(PageRequest paging);
+
+    Project findById(String id);
+
+    Project createProjectsFromGemini(String topicName, String additionalInfo) throws IOException;
+
     Project save(Project theSlide);
-    void deleteById(UUID id);
+
+    void deleteById(String id);
+
 }

@@ -1,19 +1,18 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/learning?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/learning?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true&useUnicode=yes&characterEncoding=UTF-8
     username: "admin"
     driver-class-name: com.mysql.cj.jdbc.Driver
     password: "password"
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
   liquibase:
     enabled: true
-    drop-first: false
     change-log: db/changelog/changelog-master.xml
     default-schema: public
 gemini:
-  api-key: value
+  api-key: AIzaSyBsc-SmYaqPXDvc8Zfd5URSmV3YU7pJr5s

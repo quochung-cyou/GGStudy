@@ -1,41 +1,45 @@
 package web.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
+//@EntityListeners(AuditingEntityListener.class)
 @Entity
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
-@Table(name="slides")
+@Table(name = "slides")
 public class Slide {
     @Id
-    @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
+    private String id;
 
-    @Column(name="project_id")
-    private UUID projectId;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JsonIgnore
+    private Project project;
 
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
-    @JoinColumn(name="template_id")
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JsonIgnore
     private Template template;
 
-    @Column(name="heading_title")
+    @Column(name = "heading_title")
     private String headingTitle;
 
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
-    @JoinColumn(name="slide_id")
+    @Column(name = "topic_name", columnDefinition = "TEXT")
+    private String topicName;
+
+    @OneToMany(cascade = {CascadeType.ALL})
+    @JoinColumn(name = "slide_id")
     private List<Element> elements;
 
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
-    @JoinColumn(name="slide_id")
+    @OneToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "slide_id")
     private List<Usernote> usernotes;
 
     public Slide() {

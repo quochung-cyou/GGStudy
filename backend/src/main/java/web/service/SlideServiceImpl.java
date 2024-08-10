@@ -1,16 +1,10 @@
 package web.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import web.dao.ElementRepository;
 import web.dao.SlideRepository;
-import web.dao.TemplateRepository;
-import web.model.Element;
 import web.model.Slide;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class SlideServiceImpl implements SlideService {
@@ -22,6 +16,11 @@ public class SlideServiceImpl implements SlideService {
     @Override
     public List<Slide> findAll() {
         return slideRepository.findAll();
+    }
+
+    @Override
+    public List<Slide> findByProjectId(String projectId) {
+        return slideRepository.findByProjectId(projectId);
     }
 
     @Override
