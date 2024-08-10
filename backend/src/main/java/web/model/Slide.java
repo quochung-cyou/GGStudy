@@ -1,6 +1,7 @@
 package web.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,7 +21,7 @@ public class Slide {
     @UuidGenerator(style = UuidGenerator.Style.TIME)
     private String id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
     private Project project;
 
@@ -41,6 +42,7 @@ public class Slide {
     @OneToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY)
     @JoinColumn(name = "slide_id")
     private List<Usernote> usernotes;
+
 
     public Slide() {
         this.elements = new ArrayList<>();
