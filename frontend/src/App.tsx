@@ -3,6 +3,8 @@ import AppBar from "./AppBar.tsx";
 import {useEffect} from "react";
 import gsap from 'gsap';
 import {useGSAP} from '@gsap/react';
+
+
 import dotanimation from './animations/dot.js'
 import universe from './assets/universe.png'
 import video from './assets/video.mp4'
