@@ -67,12 +67,14 @@ public class ProjectServiceImpl implements ProjectService {
     public Project createProjectsFromGemini(String topicName, String additionalInfo) throws IOException {
         String prompt = constructTopicPrompt(topicName, additionalInfo);
         String response = geminiService.getDataFromPrompt(prompt);
-
-
         var projectInputFormat = objectMapper.readValue(formatString(response), ProjectInputFormat.class);
+
         Project theProject = new Project();
+        theProject.setTitle(topicName);
         extractSlide(projectInputFormat, theProject);
         projectRepository.save(theProject);
+
+        System.out.println("Slides saved successfully");
         return theProject;
     }
 
@@ -151,7 +153,6 @@ public class ProjectServiceImpl implements ProjectService {
             newSlideElement.setHeadingTitle(geminiSlide.getHeadingTitle());
             newSlideElement.setContent(geminiSlide.getSlideTopicName());
             newSlideElement.setSlideId(theSlide.getId());
-            newSlideElement.setTemplateId(onlyTextTemplate.getId());
             theSlide.getElements().add(newSlideElement);
         }
         theSlide.setTemplate(onlyTextTemplate);
@@ -172,7 +173,6 @@ public class ProjectServiceImpl implements ProjectService {
                 newSlideElement.setImageUrl(geminiSlide.getSingleImageUrl());
             }
             newSlideElement.setSlideId(theSlide.getId());
-            newSlideElement.setTemplateId(oneImageTemplate.getId());
             theSlide.setTemplate(oneImageTemplate);
             theSlide.getElements().add(newSlideElement);
         }
@@ -202,7 +202,6 @@ public class ProjectServiceImpl implements ProjectService {
                 }
             }
             newSlideElement.setSlideId(theSlide.getId());
-            newSlideElement.setTemplateId(twoImagesTemplate.getId());
             theSlide.setTemplate(twoImagesTemplate);
             theSlide.getElements().add(newSlideElement);
         }
