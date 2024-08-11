@@ -33,6 +33,7 @@ html {
     align-items: center;
     background-color: var(--dark-purple);
     height: 100vh;
+    overflow-x: hidden;
 }
 
 .hero-section {
@@ -368,7 +369,7 @@ html {
     word-wrap: break-word;
     line-height: 1.2;
     width: 80%;
-    margin-left: 2rem;
+    margin-left: 4rem;
 }
 
 .feature-card .feature-description {
@@ -384,11 +385,11 @@ html {
     text-align: start;
     word-wrap: break-word;
     width: 80%;
-    margin-left: 2rem;
+    margin-left: 4rem;
 }
 
 .feature-card img {
-    margin-left: 2rem;
+    margin-left: 4rem;
     width: 48px;
     height: 48px;
     object-fit: contain;

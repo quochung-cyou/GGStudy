@@ -14,6 +14,7 @@ import usericon from './assets/users 02.svg'
 import charticon from './assets/bar chart.svg'
 import studenticon from './assets/student.svg'
 import shufflingicon from './assets/shuffle.svg'
+import { motion, useViewportScroll, useTransform } from 'framer-motion';
 
 
 function App() {
@@ -21,18 +22,18 @@ function App() {
     useEffect(() => {
         gsap.registerPlugin(useGSAP);
         dotanimation();
-    }, [])
+    }, []);
 
     return (
         <div className="main-container">
             <AppBar/>
             <div className="hero-section">
-                <div className="hero-text">
+                <motion.div className="hero-text" initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1 }}>
                     <h1 className="hero-title">Revolutionize Learning with AI-Driven Slides</h1>
                     <p className="hero-description">Learn Faster, Smarter, and More Efficiently with Personalized AI
                         Courses</p>
-                </div>
-                <div className="hero-button-section">
+                </motion.div>
+                <motion.div className="hero-button-section" initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1 }}>
                     <button className="hero-button-generate">
                         <svg className="icon" viewBox="0 0 24 26">
                             <path
@@ -48,17 +49,17 @@ function App() {
                         <a href="#" className="button-text">Generate</a>
                     </button>
                     <a href="#" className="hero-text-learn">Learn More</a>
-                </div>
+                </motion.div>
             </div>
-            <div className="hero-image">
+            <motion.div className="hero-image" initial={{  filter: 'grayscale(100%)', opacity: 0 }} animate={{ filter: 'grayscale(0%)', opacity: 1 }} transition={{ duration: 1 }}>
                 <img src={universe} alt="Universe" className="universe-image"/>
                 <div className="video-container">
                     <video autoPlay muted loop className="video">
                         <source src={video} type="video/mp4"/>
                     </video>
                 </div>
-            </div>
-            <div className="feature-section" style={{marginTop: "30rem"}}>
+            </motion.div>
+            <motion.div className="feature-section" style={{ marginTop: '30rem' }} initial={{ x: 150, opacity: 0 }} whileInView={{ x: 0, opacity: 1 }} transition={{ duration: 1 }}>
                 <div className="feature-card">
                     <img src={speedtesticon} alt="Speed Test Icon" className="speed-test-icon"/>
                     <h2 className="feature-title">Need to master a new skill quickly</h2>
@@ -80,8 +81,8 @@ function App() {
                         personalized training programs. Our AI-driven platform ensures that each team member learns at
                         their own pace, maximizing productivity.</p>
                 </div>
-            </div>
-            <div className="feature-section">
+            </motion.div>
+            <motion.div className="feature-section" initial={{ x: 150, opacity: 0 }} whileInView={{ x: 0, opacity: 1 }} transition={{ duration: 1 }}>
                 <div className="feature-card">
                     <img src={charticon} alt="Chart Icon" className="chart-icon"/>
                     <h2 className="feature-title">Continuous Professional Development</h2>
@@ -103,7 +104,7 @@ function App() {
                         adapts to their learning style. GGStudy identifies areas for improvement and tailors content to
                         ensure better understanding and higher grades..</p>
                 </div>
-            </div>
+            </motion.div>
         </div>
 
 

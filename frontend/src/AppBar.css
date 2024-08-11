@@ -23,20 +23,20 @@
     align-items: center;
     border-radius: 40px;
     backdrop-filter: blur(2px);
-    border: var(--purple) 1px solid;
     margin-right: 2rem;
     background: radial-gradient(
-            40% 1% at center 100%,
+            50% 20% at center 100%,
             var(--pink-opaque),
             transparent
     ),
     radial-gradient(
-            80% 50% at center 120%,
-            var(--purple),
+            50% 10% at center 100%,
+            var(--pink-opaque),
             transparent
     ),
     var(--dark-purple);
-    box-shadow: 0 0.025em 0.4em -0.02em var(--pink-opaque), 0 0.05em 0 0 hsl(260 0% 50%) inset, 0 -0.05em 0 0 hsl(260 0% 0%) inset;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--purple);
 }
 
 .navbar-menu-item {
@@ -49,14 +49,12 @@
     font-style: normal;
     font-weight: 400;
     line-height: 1.5rem;
-    -webkit-text-stroke-width: 1;
-    -webkit-text-stroke-color: var(--pink-opaque);
     padding: 0.9rem 1rem;
     transition: ease-in-out 0.3s;
 }
 
 .navbar-menu-item:hover {
-    transform: scale(1.1);
+    transform: scale(1.1) translateY(-0.1rem);
 }
 
 
@@ -65,7 +63,6 @@
     padding: 1em 2em;
     border-radius: 9999px;
     background: var(--pink-opaque);
-    box-shadow: 0 0.025em 0.4em -0.02em var(--pink-opaque), 0 0.05em 0 0 hsl(260 0% 50%) inset, 0 -0.05em 0 0 hsl(260 0% 0%) inset;
     border: 0;
     position: relative;
     overflow: hidden;
@@ -89,13 +86,13 @@
     inset: 0.125rem;
     position: absolute;
     background: radial-gradient(
-            40% 50% at center 100%,
+            50% 50% at center 100%,
             var(--pink-opaque),
             transparent
     ),
     radial-gradient(
-            80% 100% at center 120%,
-            var(--purple),
+            100% 100% at center 120%,
+            var(--pink-opaque),
             transparent
     ),
     var(--dark-purple);
