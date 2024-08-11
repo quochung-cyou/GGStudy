@@ -43,6 +43,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ObjectMapper objectMapper;
     private final ResourceLoader loader;
     private final Random random;
+    private final ImageService imageService;
 
     @Override
     public Page<ProjectDTO> findAll(int size, int page, String sortBy) {
@@ -72,10 +73,21 @@ public class ProjectServiceImpl implements ProjectService {
         Project theProject = new Project();
         theProject.setTitle(topicName);
         extractSlide(projectInputFormat, theProject);
+        theProject = setImageUrlElement(theProject);
         projectRepository.save(theProject);
 
         System.out.println("Slides saved successfully");
         return theProject;
+    }
+
+    private Project setImageUrlElement(Project project) throws JsonProcessingException {
+        for (Slide slide : project.getSlides()) {
+            for (Element element : slide.getElements()){
+                Image image = imageService.searchImages(element.getHeadingTitle());
+                element.setImageUrl(image.getLink());
+            }
+        }
+        return project;
     }
 
     @NotNull
