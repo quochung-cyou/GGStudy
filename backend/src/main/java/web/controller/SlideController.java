@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import web.model.Slide;
 import web.service.SlideService;
-import web.service.SlideServiceImpl;
 
 import java.util.List;
 
