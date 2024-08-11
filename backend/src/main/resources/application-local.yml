@@ -16,3 +16,6 @@ spring:
     default-schema: public
 gemini:
   api-key: value
+google-search:
+  api-key: value
+  engine-id: value
