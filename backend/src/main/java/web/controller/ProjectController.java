@@ -14,7 +14,7 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/v1/projects")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 public class ProjectController {
     private final ProjectService projectService;
 

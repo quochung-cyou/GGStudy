@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/v1/projects")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 public class SlideController {
     @Autowired
     private SlideService slideService;
