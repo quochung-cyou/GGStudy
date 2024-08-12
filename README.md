@@ -12,7 +12,7 @@ dense textbooks
 GGStudy is a smart learning platform that uses artificial intelligence (AI), specifically Gemini, to create customized
 learning slides, facilitating efficient and accessible learning through a structured roadmap and continuous interaction.
 
-Demo Video: [Click here]([#](https://www.youtube.com/watch?v=9Lvz6rws1qI))
+Demo Video: https://www.youtube.com/watch?v=9Lvz6rws1qI
 
 ![GGStudy](mockup/landingpage.png)
 ![GGStudy](mockup/Outline.png)
