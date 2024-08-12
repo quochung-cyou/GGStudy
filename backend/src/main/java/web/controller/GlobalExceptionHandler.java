@@ -1,5 +1,6 @@
 package web.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.ServletException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,10 +29,10 @@ public class GlobalExceptionHandler{
         return new CustomResponse<>("Missing required parameter: " + ex.getParameterName());
     }
 
-    @ExceptionHandler({RuntimeException.class})
+    @ExceptionHandler({RuntimeException.class, JsonProcessingException.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody
-    public CustomResponse<Object> handleRuntimeException(RuntimeException ex) {
-        return new CustomResponse<>(ex.getMessage());
+    public CustomResponse<Object> handleJsonProcessingException(Exception exception) {
+        return new CustomResponse<>(exception.getMessage());
     }
 }

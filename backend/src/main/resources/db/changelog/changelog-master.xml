@@ -9,5 +9,9 @@
     <changeSet id="002_modify_tables.sql" author="NguyenBui256" dbms="mysql" onValidationFail="HALT" failOnError="true">
         <sqlFile path="db/changelog/002_modify_tables.sql"/>
     </changeSet>
+
+    <changeSet id="003_create_images_table.sql" author="NguyenBui256" dbms="mysql" onValidationFail="HALT" failOnError="true">
+        <sqlFile path="db/changelog/003_create_images_table.sql"/>
+    </changeSet>
 </databaseChangeLog>
 

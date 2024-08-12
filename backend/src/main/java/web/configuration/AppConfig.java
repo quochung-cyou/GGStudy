@@ -10,6 +10,8 @@ import java.util.Random;
 
 @Configuration
 public class AppConfig {
+
+
     @Bean
     public ObjectMapper getObjectMapper() {
         return new ObjectMapper();
