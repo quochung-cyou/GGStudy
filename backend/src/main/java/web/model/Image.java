@@ -14,18 +14,18 @@ import java.util.UUID;
 @Setter
 @Table(name = "images")
 public class Image {
-   public Image(String link){
-      this.link = link;
-   }
-
-   public Image(){
-   }
-
    @Id
    @GeneratedValue
    @UuidGenerator(style = UuidGenerator.Style.TIME)
    private String id;
 
-   @Column(name = "link")
+   @Column(name = "link", columnDefinition = "TEXT")
    private String link;
+
+   public Image(){}
+
+   public Image(String link){
+      this.link = link;
+   }
+
 }
