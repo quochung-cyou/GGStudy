@@ -19,7 +19,7 @@ jasypt:
   encryptor:
     password: ${JASYPT_ENCRYPTOR_PASSWORD}
 gemini:
-  api-key: ENC(OmSIBjOVMchVTLVEtkFcQXlD2iMFy164c6XhC1bh+nYF9OOVlnOpSLjuD56ZBz37hNGuL8Fxm/70qfSr4QGRQ5IlvE9c4G2ioh+7djO8H/Q=)
+  api-key: ENC(JtqwKAE0dIRxPHm7HuJmQeBPurU++fn/+BaI6aVUTNXu/2dZBqGp5cGVeQ7w6GgQ0AnwXZmyWy/qnBcxuHk6ev1xMcWAf28iyI28ydxFeao=)
 google-search:
   api-key: ENC(dTYS2dSPAbd9DNgvv8ba6MAIDPyLhP3Nw5h6JaWI6L/WFQ6Vh+YN8mVgj0V+gWvTKWl9QcBB1uG9TT4Pvgfhma4AB3uOfK3S4UIhD2za9z8=)
   engine-id: ENC(WoaXwwTfmj5Lay7iKjop1wBZQZ5aOcEm00QVsJgCqvwcpghRZmkRo4euMKteaRH50xkl342s17R3T33mBnz64g==)
