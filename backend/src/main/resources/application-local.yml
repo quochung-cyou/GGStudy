@@ -15,4 +15,7 @@ spring:
     change-log: db/changelog/changelog-master.xml
     default-schema: public
 gemini:
-  api-key: AIzaSyBsc-SmYaqPXDvc8Zfd5URSmV3YU7pJr5s
+  api-key: value
+google-search:
+  api-key: value
+  engine-id: value

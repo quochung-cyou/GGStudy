@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.domain.Page;
@@ -14,8 +15,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import web.dao.ProjectRepository;
 import web.dao.TemplateRepository;
+import web.dto.CustomResponse;
+import web.dto.ProjectDTO;
 import web.model.*;
 
+import java.util.ArrayList;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -39,31 +43,51 @@ public class ProjectServiceImpl implements ProjectService {
     private final ObjectMapper objectMapper;
     private final ResourceLoader loader;
     private final Random random;
+    private final ImageService imageService;
 
     @Override
-    public Page<Project> findAll(PageRequest pageable) {
-        return projectRepository.findAll(pageable);
+    public Page<ProjectDTO> findAll(int size, int page, String sortBy) {
+        Pageable pageable = PageRequest.of(Math.max(page,0), Math.min(Math.max(size,1), 20), Sort.Direction.ASC, sortBy);
+        List<Project> projectList = projectRepository.findAll();
+        if(projectList.isEmpty()) throw new NotFoundException("No project found.");
+        List<ProjectDTO> projectDTOList = new ArrayList<>();
+        for(Project project : projectList) {
+            ProjectDTO projectDTO = new ProjectDTO(project);
+            projectDTOList.add(projectDTO);
+        }
+        return new PageImpl<>(projectDTOList, pageable, projectDTOList.size());
     }
 
     @Override
     public Project findById(String id) {
-        Optional<Project> project = projectRepository.findById(id);
-        if (project.isEmpty()) throw new RuntimeException("Project not found - " + id);
-        return project.get();
+        return projectRepository.findById(id)
+                .orElseThrow(()-> new NotFoundException("Project not found with the given ID."));
     }
 
     @Override
     public Project createProjectsFromGemini(String topicName, String additionalInfo) throws IOException {
         String prompt = constructTopicPrompt(topicName, additionalInfo);
         String response = geminiService.getDataFromPrompt(prompt);
-
-
         var projectInputFormat = objectMapper.readValue(formatString(response), ProjectInputFormat.class);
+
         Project theProject = new Project();
+        theProject.setTitle(topicName);
         extractSlide(projectInputFormat, theProject);
+        theProject = setImageUrlElement(theProject);
         projectRepository.save(theProject);
+
         System.out.println("Slides saved successfully");
         return theProject;
+    }
+
+    private Project setImageUrlElement(Project project) throws JsonProcessingException {
+        for (Slide slide : project.getSlides()) {
+            for (Element element : slide.getElements()){
+                Image image = imageService.searchImages(element.getHeadingTitle());
+                element.setImageUrl(image.getLink());
+            }
+        }
+        return project;
     }
 
     @NotNull
@@ -101,7 +125,7 @@ public class ProjectServiceImpl implements ProjectService {
                     break;
                 }
                 default:
-                    throw new RuntimeException("Slide template not found - " + geminiSlide.getSlideType());
+                    throw new NotFoundException("Slide template not found - " + geminiSlide.getSlideType());
             }
             theSlide.setProject(theProject);
             theProject.getSlides().add(theSlide);
@@ -128,7 +152,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void deleteById(String id) {
         Optional<Project> project = projectRepository.findById(id);
-        if (project.isEmpty()) throw new RuntimeException("Project not found - " + id);
+        if (project.isEmpty()) throw new NotFoundException("Project not found with the given ID.");
         projectRepository.delete(project.get());
     }
 
@@ -141,7 +165,6 @@ public class ProjectServiceImpl implements ProjectService {
             newSlideElement.setHeadingTitle(geminiSlide.getHeadingTitle());
             newSlideElement.setContent(geminiSlide.getSlideTopicName());
             newSlideElement.setSlideId(theSlide.getId());
-            newSlideElement.setTemplateId(onlyTextTemplate.getId());
             theSlide.getElements().add(newSlideElement);
         }
         theSlide.setTemplate(onlyTextTemplate);
@@ -162,7 +185,6 @@ public class ProjectServiceImpl implements ProjectService {
                 newSlideElement.setImageUrl(geminiSlide.getSingleImageUrl());
             }
             newSlideElement.setSlideId(theSlide.getId());
-            newSlideElement.setTemplateId(oneImageTemplate.getId());
             theSlide.setTemplate(oneImageTemplate);
             theSlide.getElements().add(newSlideElement);
         }
@@ -192,7 +214,6 @@ public class ProjectServiceImpl implements ProjectService {
                 }
             }
             newSlideElement.setSlideId(theSlide.getId());
-            newSlideElement.setTemplateId(twoImagesTemplate.getId());
             theSlide.setTemplate(twoImagesTemplate);
             theSlide.getElements().add(newSlideElement);
         }

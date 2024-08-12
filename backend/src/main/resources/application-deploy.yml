@@ -19,5 +19,10 @@ jasypt:
   encryptor:
     password: ${JASYPT_ENCRYPTOR_PASSWORD}
 gemini:
-  api-key: ENC(0jI2pVETIXx/nQP4Gx3mVVjUX8PNIiAHOa2eemXalu8zsSw02bUYCzUAiogn5S5plYKLU3YBidGG35b6T+uSX8AWo1Izi6usOr0/q5J+czdJPb0Na4iIApj9rOg8OThjdWmZebikeg9L8GDAL0hMzJ3ZHulwIB5hjTILmfWnNBIARRXavjefhLgkXv2+yktMoj586OBNnwTFgNI1InYDLA==)
-
+  api-key: ENC(OmSIBjOVMchVTLVEtkFcQXlD2iMFy164c6XhC1bh+nYF9OOVlnOpSLjuD56ZBz37hNGuL8Fxm/70qfSr4QGRQ5IlvE9c4G2ioh+7djO8H/Q=)
+google-search:
+  api-key: ENC(dTYS2dSPAbd9DNgvv8ba6MAIDPyLhP3Nw5h6JaWI6L/WFQ6Vh+YN8mVgj0V+gWvTKWl9QcBB1uG9TT4Pvgfhma4AB3uOfK3S4UIhD2za9z8=)
+  engine-id: ENC(WoaXwwTfmj5Lay7iKjop1wBZQZ5aOcEm00QVsJgCqvwcpghRZmkRo4euMKteaRH50xkl342s17R3T33mBnz64g==)
+springdoc:
+  swagger-ui:
+    url: https://api-ggstudy.ptit.id.vn/v3/api-docs

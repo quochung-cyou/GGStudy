@@ -1,0 +1,142 @@
+.navbar {
+    margin-top: 2rem;
+    background-color: var(--dark-purple);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    padding: 0 1rem;
+    height: 3.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.logo-img {
+    width: 12rem;
+    height: 3rem;
+    object-fit: contain;
+    margin-left: 2rem;
+}
+
+.navbar-menu {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-radius: 40px;
+    backdrop-filter: blur(2px);
+    margin-right: 2rem;
+    background: radial-gradient(
+            50% 20% at center 100%,
+            var(--pink-opaque),
+            transparent
+    ),
+    radial-gradient(
+            50% 10% at center 100%,
+            var(--pink-opaque),
+            transparent
+    ),
+    var(--dark-purple);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--purple);
+}
+
+.navbar-menu-item {
+    color: var(--pink-pastel);
+    text-shadow: 0px 4px 4px var(--purple);
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+    margin: 0 1.5rem;
+    font-size: 0.8rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.5rem;
+    padding: 0.9rem 1rem;
+    transition: ease-in-out 0.3s;
+}
+
+.navbar-menu-item:hover {
+    transform: scale(1.1) translateY(-0.1rem);
+}
+
+
+.gradient-button {
+    font-size: 0.8rem;
+    padding: 1em 2em;
+    border-radius: 9999px;
+    background: var(--pink-opaque);
+    border: 0;
+    position: relative;
+    overflow: hidden;
+    margin-right: 1rem;
+}
+
+.spinner-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transition: opacity 300ms;
+    opacity: 1;
+    container-type: inline-size;
+}
+
+.gradient-button .front-layer {
+    transition-duration: 300ms;
+    border-radius: 9999px;
+    inset: 0.125rem;
+    position: absolute;
+    background: radial-gradient(
+            50% 50% at center 100%,
+            var(--pink-opaque),
+            transparent
+    ),
+    radial-gradient(
+            100% 100% at center 120%,
+            var(--pink-opaque),
+            transparent
+    ),
+    var(--dark-purple);
+}
+
+.gradient-button .button-text {
+    position: relative;
+    color: var(--pink-pastel);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 1.3rem;
+}
+
+.spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100cqw;
+    height: 100cqw;
+    transition: ease-in-out 1.5s;
+    background-image: linear-gradient(
+            transparent,
+            transparent 30%,
+            #fffa,
+            transparent 70%,
+            transparent
+    );
+    animation: none;
+    opacity: 0;
+}
+
+.gradient-button:hover .spinner {
+    animation: spinner 4s linear infinite;
+    opacity: 1;
+}
+
+@keyframes spinner {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}

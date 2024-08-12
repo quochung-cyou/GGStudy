@@ -1,14 +1,12 @@
 package web.service;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import web.dto.ProjectDTO;
 import web.model.Project;
-
 import java.io.IOException;
 
-
 public interface ProjectService {
-    Page<Project> findAll(PageRequest paging);
+    Page<ProjectDTO> findAll(int size, int page, String sortBy);
 
     Project findById(String id);
 
@@ -17,5 +15,4 @@ public interface ProjectService {
     Project save(Project theSlide);
 
     void deleteById(String id);
-
 }

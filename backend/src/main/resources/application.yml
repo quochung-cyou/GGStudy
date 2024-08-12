@@ -7,6 +7,8 @@ logging:
   file:
     path: backend/logs
     name: app.log
+  profile:
+    active: local
 management:
   endpoints:
     web:
@@ -17,5 +19,4 @@ management:
       show-details: always
 springdoc:
   swagger-ui:
-    disable-swagger-default-url: true
-    path: /api-docs
+    url: https://api-ggstudy.ptit.id.vn/v3/api-docs
