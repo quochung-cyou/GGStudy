@@ -16,6 +16,7 @@ import org.springframework.util.FileCopyUtils;
 import web.dao.ProjectRepository;
 import web.dao.TemplateRepository;
 import web.dto.CustomResponse;
+import web.dto.OutlineResponse;
 import web.dto.ProjectDTO;
 import web.model.*;
 
@@ -34,8 +35,9 @@ import static web.utils.Constants.*;
 public class ProjectServiceImpl implements ProjectService {
 
     public static final String BASIC_PROMPT_PATH = "classpath:data/prompt.txt";
+    public static final String OUTLINE_PROMPT_PATH = "classpath:data/outlineprompt.txt";
 
-    private enum ContentType {TEXT, IMAGE}
+    private enum ContentType {TEXT, IMAGE, TEXT1, TEXT2, IMAGE1, IMAGE2}
 
     private final ProjectRepository projectRepository;
     private final TemplateRepository templateRepository;
@@ -58,10 +60,21 @@ public class ProjectServiceImpl implements ProjectService {
         return new PageImpl<>(projectDTOList, pageable, projectDTOList.size());
     }
 
+
     @Override
     public Project findById(String id) {
         return projectRepository.findById(id)
                 .orElseThrow(()-> new NotFoundException("Project not found with the given ID."));
+    }
+
+    @Override
+    public List<OutlineResponse> createProjectOutlines(String topicName) throws IOException {
+        String prompt = getPromptFromFile(OUTLINE_PROMPT_PATH);
+        prompt = prompt.replace("{{topic_name}}", topicName);
+        String response = geminiService.getDataFromPrompt(prompt);
+        System.out.println(response);
+        var outlineInputFormat = objectMapper.readValue(formatString(response), OutlineInputFormat.class);
+        return outlineInputFormat.getOutlines();
     }
 
     @Override
@@ -193,25 +206,26 @@ public class ProjectServiceImpl implements ProjectService {
     private void twoImagesAndTextTemplateProcess(Slide theSlide, SlideInputFormat geminiSlide) {
         List<Template> templateList = templateRepository.findByTemplateType(TWO_IMAGES_AND_TEXT);
         Template twoImagesTemplate = templateList.get(random.nextInt(templateList.size()));
-        boolean firstImageIsTaken = false;
-        for (int templateElementIndex = 0; templateElementIndex < 3; templateElementIndex++) {
+        for (int templateElementIndex = 0; templateElementIndex < 4; templateElementIndex++) {
             Element templateElement = twoImagesTemplate.getElements().get(templateElementIndex);
             Element newSlideElement = extractTemplateElement(templateElement);
-            if (templateElement.getElementType().equals(ContentType.TEXT.toString())) {
+            String elementType = templateElement.getElementType();
+            if (elementType.equals(ContentType.TEXT1.toString())) {
                 newSlideElement.setTopicName(geminiSlide.getTopicName());
-                newSlideElement.setHeadingTitle(geminiSlide.getHeadingTitle());
-                newSlideElement.setContent(geminiSlide.getParagraphText());
-            } else if (templateElement.getElementType().equals(ContentType.IMAGE.toString())) {
-                if (!firstImageIsTaken) {
-                    newSlideElement.setHeadingTitle(geminiSlide.getFirstImageTitle());
-                    newSlideElement.setContent(geminiSlide.getFirstImageText());
-                    newSlideElement.setImageUrl(geminiSlide.getFirstImageUrl());
-                    firstImageIsTaken = true;
-                } else {
-                    newSlideElement.setHeadingTitle(geminiSlide.getSecondImageTitle());
-                    newSlideElement.setContent(geminiSlide.getSecondImageText());
-                    newSlideElement.setImageUrl(geminiSlide.getSecondImageUrl());
-                }
+                newSlideElement.setHeadingTitle(geminiSlide.getFirstImageTitle());
+                newSlideElement.setContent(geminiSlide.getFirstImageText());
+            } else if (elementType.equals(ContentType.TEXT2.toString())) {
+                newSlideElement.setTopicName(geminiSlide.getTopicName());
+                newSlideElement.setHeadingTitle(geminiSlide.getSecondImageTitle());
+                newSlideElement.setContent(geminiSlide.getSecondImageText());
+            } else if (elementType.equals(ContentType.IMAGE1.toString())) {
+                newSlideElement.setHeadingTitle(geminiSlide.getFirstImageTitle());
+                newSlideElement.setContent(geminiSlide.getFirstImageText());
+                newSlideElement.setImageUrl(geminiSlide.getFirstImageUrl());
+            } else if (elementType.equals(ContentType.IMAGE2.toString())) {
+                newSlideElement.setHeadingTitle(geminiSlide.getSecondImageTitle());
+                newSlideElement.setContent(geminiSlide.getSecondImageText());
+                newSlideElement.setImageUrl(geminiSlide.getSecondImageUrl());
             }
             newSlideElement.setSlideId(theSlide.getId());
             theSlide.setTemplate(twoImagesTemplate);
