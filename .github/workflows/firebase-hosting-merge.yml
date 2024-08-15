@@ -12,7 +12,7 @@ jobs:
       - name: Change directory to frontend and install dependencies
         run: |
           cd frontend
-          npm ci
+          npm install
       - name: Build project
         run: npm run build
         working-directory: ./frontend
