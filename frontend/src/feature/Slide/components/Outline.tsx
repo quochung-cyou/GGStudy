@@ -27,7 +27,7 @@ export const Outline = () => {
     useEffect(() => {
     }, [font, studyTime, studyMode, slideDimension])
     return (
-        <div className='h-screen'>
+        <div className='h-screen relative'>
             {/* ĐÂY LÀ THANH MENU BÊN TRÊN */}
             <div className='bg-[#01031A] flex justify-between h-[10vh] items-center px-10 border-0 border-b-[#c396fe3f] border-b-[1px]'>
                 <div>

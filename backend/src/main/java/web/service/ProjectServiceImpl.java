@@ -5,24 +5,25 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.domain.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
+import web.common.shared.ContentType;
+import web.common.shared.SlideType;
 import web.dao.ProjectRepository;
 import web.dao.TemplateRepository;
-import web.dto.CustomResponse;
 import web.dto.ProjectDTO;
 import web.model.*;
 
-import java.util.ArrayList;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -34,8 +35,8 @@ import static web.utils.Constants.*;
 public class ProjectServiceImpl implements ProjectService {
 
     public static final String BASIC_PROMPT_PATH = "classpath:data/prompt.txt";
+    private static final Logger log = LoggerFactory.getLogger(ProjectServiceImpl.class);
 
-    private enum ContentType {TEXT, IMAGE}
 
     private final ProjectRepository projectRepository;
     private final TemplateRepository templateRepository;
@@ -47,11 +48,10 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Page<ProjectDTO> findAll(int size, int page, String sortBy) {
-        Pageable pageable = PageRequest.of(Math.max(page,0), Math.min(Math.max(size,1), 20), Sort.Direction.ASC, sortBy);
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 20), Sort.Direction.ASC, sortBy);
         List<Project> projectList = projectRepository.findAll();
-        if(projectList.isEmpty()) throw new NotFoundException("No project found.");
         List<ProjectDTO> projectDTOList = new ArrayList<>();
-        for(Project project : projectList) {
+        for (Project project : projectList) {
             ProjectDTO projectDTO = new ProjectDTO(project);
             projectDTOList.add(projectDTO);
         }
@@ -61,33 +61,35 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public Project findById(String id) {
         return projectRepository.findById(id)
-                .orElseThrow(()-> new NotFoundException("Project not found with the given ID."));
+                .orElseThrow(() -> new NotFoundException("Project not found with the given ID."));
     }
 
     @Override
     public Project createProjectsFromGemini(String topicName, String additionalInfo) throws IOException {
         String prompt = constructTopicPrompt(topicName, additionalInfo);
         String response = geminiService.getDataFromPrompt(prompt);
+        log.info("Response from Gemini: {}", response);
         var projectInputFormat = objectMapper.readValue(formatString(response), ProjectInputFormat.class);
 
         Project theProject = new Project();
         theProject.setTitle(topicName);
         extractSlide(projectInputFormat, theProject);
-        theProject = setImageUrlElement(theProject);
+        setImageUrlElement(theProject);
         projectRepository.save(theProject);
 
         System.out.println("Slides saved successfully");
         return theProject;
     }
 
-    private Project setImageUrlElement(Project project) throws JsonProcessingException {
+    private void setImageUrlElement(Project project) throws JsonProcessingException {
         for (Slide slide : project.getSlides()) {
-            for (Element element : slide.getElements()){
-                Image image = imageService.searchImages(element.getHeadingTitle());
-                element.setImageUrl(image.getLink());
+            for (Element element : slide.getElements()) {
+                if (element.getElementType().equals(ContentType.IMAGE.toString())) {
+                    Image image = imageService.searchImages(element.getImageUrl());
+                    element.setImageUrl(image.getLink());
+                }
             }
         }
-        return project;
     }
 
     @NotNull
@@ -111,19 +113,17 @@ public class ProjectServiceImpl implements ProjectService {
             Slide theSlide = new Slide();
             theSlide.setTopicName(geminiSlide.getTopicName());
             theSlide.setHeadingTitle(geminiSlide.getHeadingTitle());
-            switch (geminiSlide.getSlideType()) {
-                case "TEXT_ONLY": {
+
+            switch (SlideType.valueOf(geminiSlide.getSlideType())) {
+                case TEXT_ONLY:
                     textOnlyTemplateProcess(theSlide, geminiSlide);
                     break;
-                }
-                case "ONE_IMAGE_AND_TEXT": {
+                case ONE_IMAGE_AND_TEXT:
                     oneImageAndTextTemplateProcess(theSlide, geminiSlide);
                     break;
-                }
-                case "TWO_IMAGES_AND_TEXT": {
+                case TWO_IMAGES_AND_TEXT:
                     twoImagesAndTextTemplateProcess(theSlide, geminiSlide);
                     break;
-                }
                 default:
                     throw new NotFoundException("Slide template not found - " + geminiSlide.getSlideType());
             }
@@ -161,12 +161,11 @@ public class ProjectServiceImpl implements ProjectService {
         Template onlyTextTemplate = templateList.get(random.nextInt(templateList.size()));
         for (Element templateElement : onlyTextTemplate.getElements()) {
             Element newSlideElement = extractTemplateElement(templateElement);
-            newSlideElement.setTopicName(geminiSlide.getTopicName());
-            newSlideElement.setHeadingTitle(geminiSlide.getHeadingTitle());
             newSlideElement.setContent(geminiSlide.getSlideTopicName());
             newSlideElement.setSlideId(theSlide.getId());
             theSlide.getElements().add(newSlideElement);
         }
+        theSlide.setHeadingTitle(geminiSlide.getSlideTopicName());
         theSlide.setTemplate(onlyTextTemplate);
     }
 
@@ -176,18 +175,16 @@ public class ProjectServiceImpl implements ProjectService {
         for (Element templateElement : oneImageTemplate.getElements()) {
             Element newSlideElement = extractTemplateElement(templateElement);
             if (templateElement.getElementType().equals(ContentType.TEXT.toString())) {
-                newSlideElement.setTopicName(geminiSlide.getTopicName());
-                newSlideElement.setHeadingTitle(geminiSlide.getHeadingTitle());
                 newSlideElement.setContent(geminiSlide.getParagraphText());
             } else if (templateElement.getElementType().equals(ContentType.IMAGE.toString())) {
-                newSlideElement.setHeadingTitle(geminiSlide.getHeadingTitle());
-                newSlideElement.setContent(geminiSlide.getParagraphText());
                 newSlideElement.setImageUrl(geminiSlide.getSingleImageUrl());
+            } else if (templateElement.getElementType().equals(ContentType.HEADING.toString())) {
+                newSlideElement.setContent(geminiSlide.getHeadingTitle());
             }
             newSlideElement.setSlideId(theSlide.getId());
-            theSlide.setTemplate(oneImageTemplate);
             theSlide.getElements().add(newSlideElement);
         }
+        theSlide.setTemplate(oneImageTemplate);
     }
 
     private void twoImagesAndTextTemplateProcess(Slide theSlide, SlideInputFormat geminiSlide) {
@@ -198,25 +195,21 @@ public class ProjectServiceImpl implements ProjectService {
             Element templateElement = twoImagesTemplate.getElements().get(templateElementIndex);
             Element newSlideElement = extractTemplateElement(templateElement);
             if (templateElement.getElementType().equals(ContentType.TEXT.toString())) {
-                newSlideElement.setTopicName(geminiSlide.getTopicName());
-                newSlideElement.setHeadingTitle(geminiSlide.getHeadingTitle());
                 newSlideElement.setContent(geminiSlide.getParagraphText());
             } else if (templateElement.getElementType().equals(ContentType.IMAGE.toString())) {
                 if (!firstImageIsTaken) {
-                    newSlideElement.setHeadingTitle(geminiSlide.getFirstImageTitle());
-                    newSlideElement.setContent(geminiSlide.getFirstImageText());
                     newSlideElement.setImageUrl(geminiSlide.getFirstImageUrl());
                     firstImageIsTaken = true;
                 } else {
-                    newSlideElement.setHeadingTitle(geminiSlide.getSecondImageTitle());
-                    newSlideElement.setContent(geminiSlide.getSecondImageText());
                     newSlideElement.setImageUrl(geminiSlide.getSecondImageUrl());
                 }
+            } else if (templateElement.getElementType().equals(ContentType.HEADING.toString())) {
+                newSlideElement.setContent(geminiSlide.getHeadingTitle());
             }
             newSlideElement.setSlideId(theSlide.getId());
-            theSlide.setTemplate(twoImagesTemplate);
             theSlide.getElements().add(newSlideElement);
         }
+        theSlide.setTemplate(twoImagesTemplate);
     }
 
     private Element extractTemplateElement(Element templateElement) {
