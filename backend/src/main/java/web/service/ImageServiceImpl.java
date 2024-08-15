@@ -36,16 +36,20 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     public Image searchImages(String prompt) throws JsonProcessingException {
+        prompt = improvePrompt(prompt);
         log.info("Searching for images with prompt: {}", prompt);
-        improvePrompt(prompt);
+        String finalPrompt = prompt;
         String response = WebClient.builder().baseUrl("https://www.googleapis.com")
                 .build().get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/customsearch/v1")
                         .queryParam("key", googleSearchKey)
                         .queryParam("cx", engineId)
-                        .queryParam("q", prompt)
+                        .queryParam("q", finalPrompt)
                         .queryParam("searchType", "image")
+                        .queryParam("num", 1)
+                        .queryParam("imgSize", "large")
+                        .queryParam("fields", "items(link)")
                         .build())
                 .retrieve()
                 .onStatus(
@@ -70,14 +74,9 @@ public class ImageServiceImpl implements ImageService {
     }
 
     public String improvePrompt(String prompt) {
-        // Add keywords to improve the search prompt
-
-        // Update the prompt with the improved version
         return prompt + " high resolution" +
-                " site:unsplash.com" + // Example trusted domain
-                " site:pexels.com" + // Example trusted domain
-                " site:pixabay.com" + // Example trusted domain
-                " -expired";
+                " no watermark" +
+                " free license";
     }
 
     @Override

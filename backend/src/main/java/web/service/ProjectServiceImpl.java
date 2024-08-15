@@ -165,6 +165,7 @@ public class ProjectServiceImpl implements ProjectService {
             newSlideElement.setSlideId(theSlide.getId());
             theSlide.getElements().add(newSlideElement);
         }
+        theSlide.setHeadingTitle(geminiSlide.getSlideTopicName());
         theSlide.setTemplate(onlyTextTemplate);
     }
 

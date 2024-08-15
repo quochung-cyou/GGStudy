@@ -21,11 +21,11 @@ VALUES ('one_image_and_text_element_1', NULL, 'HEADING', 'Tiêu đề', null, 1,
 INSERT INTO elements (id, slide_id, element_type, heading_title, content, layer, appear_order, size_x, size_y, pos_x,
                       pos_y, image_url, duration, template_id, topic_name)
 VALUES ('one_image_and_text_element_4', NULL, 'IMAGE', null, null, 1, 1, 1058, 859, -98, 300, 'image_url_2', 0,
-        'one_image_and_text_template_1', null),
+        'two_images_and_text_template_2', null),
        ('one_image_and_text_element_5', NULL, 'HEADING', 'Tiêu đề', null, 1, 2, 0, 0, 1159, 300, null, 0,
-        'one_image_and_text_template_1', null),
+        'two_images_and_text_template_2', null),
        ('one_image_and_text_element_6', NULL, 'TEXT', null, 'Chữ', 1, 3, 0, 0, 1159, 652, null, 0,
-        'one_image_and_text_template_1', null);
+        'two_images_and_text_template_2', null);
 
 INSERT INTO elements (id, slide_id, element_type, heading_title, content, layer, appear_order, size_x, size_y, pos_x,
                       pos_y, image_url, duration, template_id, topic_name)
