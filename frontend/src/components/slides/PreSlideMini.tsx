@@ -27,18 +27,17 @@ export const PreSlideMini = ({ slides, handleClick, chooseIndex, ...rest }: PreS
                     <div className='h-full relative cursor-pointer' {...rest} onClick={() => handleClick(item.id)}>
                         <div className='bg-white text-black relative h-full aspect-video rounded-2xl hover:ring-1 overflow-hidden'>
                             {item.elements.map((item) => {
-                                if (item.elementType == 'TEXT') {
+                                if (item.elementType == 'TEXT' || item.elementType == 'HEADING') {
                                     return (
-                                        <div key={item.id} className={`w-full text-center z-[${item.layer}] relative`} style={{ top: `calc(${item.posY / 10}px)`, left: `calc(${item.posX / 10}px)`, width: `calc(${item.sizeX / 10}px)`, height: `calc(${item.sizeY / 10}px)` }}>
-                                            <div className='origin-center scale-[0.2] text-3xl relative w-full' style={{ top: `calc(${item.posY / 10}px)`, left: `calc(${item.posX / 10}px)`, width: `calc(${item.sizeX / 10}px)`, height: `calc(${item.sizeY / 10}px)` }}>{item.headingTitle}</div>
-                                            <div className='origin-center scale-[0.2] text-2xl relative w-full' style={{ top: `calc(${item.posY / 10}px)`, left: `calc(${item.posX / 10}px)`, width: `calc(${item.sizeX / 10}px)`, height: `calc(${item.sizeY / 10}px)` }} >{item.content}</div>
+                                        <div key={item.id} className={`text-center z-[${item.layer}] relative`} style={{ bottom: `calc(${item.posY / 10}px)`, left: `calc(${item.posX / 10}px)` }}>
+                                            <div className='text-3xl relative'/>
                                         </div>
                                     )
                                 }
                                 else if (item.elementType == 'IMAGE') {
                                     return (
-                                        <div key={item.id} className={`z-[${item.layer}] relative`} style={{ top: `calc(${item.posY / 10}px)`, left: `calc(${item.posX / 10}px)`, width: `calc(${item.sizeX / 10}px)`, height: `calc(${item.sizeY / 10}px)` }}>
-                                            <img className='scale-[0.2] relative' src={item.imageUrl} alt={item.headingTitle} style={{ top: `calc(${item.posY / 10}px)`, left: `calc(${item.posX / 10}px)`, width: `calc(${item.sizeX / 10}px)`, height: `calc(${item.sizeY / 10}px)` }} />
+                                        <div key={item.id} className={`z-[${item.layer}] relative`} style={{ bottom: `calc(${item.posY / 10}px)`, left: `calc(${item.posX / 10}px)`, width: `calc(${item.sizeX / 10}px)`, height: `calc(${item.sizeY / 10}px)` }}>
+                                            <img className='scale-[0.2] relative' src={item.imageUrl} alt={item.headingTitle} />
                                         </div>
                                     )
                                 }

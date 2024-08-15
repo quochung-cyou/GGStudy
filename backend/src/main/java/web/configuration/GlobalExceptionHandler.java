@@ -1,9 +1,8 @@
-package web.controller;
+package web.configuration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import jakarta.servlet.ServletException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,7 +13,8 @@ import web.dto.CustomResponse;
 import web.model.NotFoundException;
 
 @ControllerAdvice
-public class GlobalExceptionHandler{
+@Slf4j
+public class GlobalExceptionHandler {
     @ExceptionHandler({NotFoundException.class, NoResourceFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
@@ -33,6 +33,7 @@ public class GlobalExceptionHandler{
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody
     public CustomResponse<Object> handleJsonProcessingException(Exception exception) {
+        log.error("Exception: ", exception);
         return new CustomResponse<>(exception.getMessage());
     }
 }

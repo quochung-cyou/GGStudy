@@ -1,29 +1,46 @@
-INSERT INTO templates
-values
-('6ba5525c-3e51-45a9-9aca-26876e734dc7','TEXT_ONLY'),
-('6aad922f-74ba-4794-97cc-716ac6dec522', 'ONE_IMAGE_AND_TEXT'),
-('4c1f9f4f-db9a-47c9-86dc-d24784914913', 'TWO_IMAGES_AND_TEXT');
+use learning;
+set foreign_key_checks=0;
+truncate table elements;
+truncate table templates;
 
 
-INSERT INTO elements(`id`,
-`element_type`,
-`heading_title`,
-`content`,
-`layer`,
-`appear_order`,
-`size_x`,
-`size_y`,
-`pos_x`,
-`pos_y`,
-`image_url`,
-`duration`,
-`template_id`)
-values
-('5833d20a-dfa8-4998-8982-31ccde93995b','TEXT','','',1,1,5,5,5,5,"",3,'6ba5525c-3e51-45a9-9aca-26876e734dc7'),
-('e6b29c36-fa77-4769-8796-a3dc67f954ff','TEXT','','',1,1,5,5,5,5,"",3,'6aad922f-74ba-4794-97cc-716ac6dec522'),
-('8b5d978e-f0ba-4e09-a6ff-f9cac2ec39bb','IMAGE','','',1,1,10,10,10,10,"",3,'6aad922f-74ba-4794-97cc-716ac6dec522'),
-('e9f90324-2c8e-44bf-b6e8-211303a46ed2','TEXT','','',1,1,5,5,5,5,"",3,'4c1f9f4f-db9a-47c9-86dc-d24784914913'),
-('f75c325c-c40d-421e-a990-30b63f4b608f','IMAGE','','',1,1,10,10,10,10,"",3,'4c1f9f4f-db9a-47c9-86dc-d24784914913'),
-('5a9c0aec-1b96-4649-a0ff-1afba4e145a0','IMAGE','','',1,1,10,10,10,10,"",3,'4c1f9f4f-db9a-47c9-86dc-d24784914913');
+INSERT INTO templates (id, template_type)
+VALUES ('one_image_and_text_template_1', 'ONE_IMAGE_AND_TEXT'),
+       ('two_images_and_text_template_2', 'TWO_IMAGES_AND_TEXT'),
+       ('text_only_template_3', 'TEXT_ONLY');
 
+INSERT INTO elements (id, slide_id, element_type, heading_title, content, layer, appear_order, size_x, size_y, pos_x,
+                      pos_y, image_url, duration, template_id, topic_name)
+VALUES ('one_image_and_text_element_1', NULL, 'HEADING', 'Tiêu đề', null, 1, 1, 0, 0, 108, 269.5, null, 0,
+        'one_image_and_text_template_1', null),
+       ('one_image_and_text_element_2', NULL, 'IMAGE', null, null, 0, 2, 1053, 794, 742, 200, 'image_url_1', 0,
+        'one_image_and_text_template_1', null),
+       ('one_image_and_text_element_3', NULL, 'TEXT', null, 'Chữ', 1, 3, 0, 0, 108, 584, null, 0,
+        'one_image_and_text_template_1', null);
 
+INSERT INTO elements (id, slide_id, element_type, heading_title, content, layer, appear_order, size_x, size_y, pos_x,
+                      pos_y, image_url, duration, template_id, topic_name)
+VALUES ('one_image_and_text_element_4', NULL, 'IMAGE', null, null, 1, 1, 1058, 859, -98, 300, 'image_url_2', 0,
+        'one_image_and_text_template_1', null),
+       ('one_image_and_text_element_5', NULL, 'HEADING', 'Tiêu đề', null, 1, 2, 0, 0, 1159, 300, null, 0,
+        'one_image_and_text_template_1', null),
+       ('one_image_and_text_element_6', NULL, 'TEXT', null, 'Chữ', 1, 3, 0, 0, 1159, 652, null, 0,
+        'one_image_and_text_template_1', null);
+
+INSERT INTO elements (id, slide_id, element_type, heading_title, content, layer, appear_order, size_x, size_y, pos_x,
+                      pos_y, image_url, duration, template_id, topic_name)
+VALUES ('two_images_and_text_element_1', NULL, 'IMAGE', null, null, 1, 1, 468, 604, 819, 267, 'image_url_3', 0,
+        'two_images_and_text_template_2', null),
+       ('two_images_and_text_element_2', NULL, 'IMAGE', null, null, 2, 2, 468, 604, 1354, 267, 'image_url_4', 0,
+        'two_images_and_text_template_2', null),
+       ('two_images_and_text_element_3', NULL, 'HEADING', 'Tiêu đề', null, 1, 3, 0, 0, 108, 267, null, 0,
+        'two_images_and_text_template_2', null),
+       ('two_images_and_text_element_4', NULL, 'TEXT', null, 'Mô tả', 1, 4, 0, 0, 108, 601, null, 0,
+        'two_images_and_text_template_2', null);
+
+INSERT INTO elements (id, slide_id, element_type, heading_title, content, layer, appear_order, size_x, size_y, pos_x,
+                      pos_y, image_url, duration, template_id, topic_name)
+VALUES ('text_only_element_1', NULL, 'HEADING', 'Tiêu đề', null, 1, 1, 0, 0, 127, 308, null, 0,
+        'text_only_template_3', null);
+
+set foreign_key_checks=1;

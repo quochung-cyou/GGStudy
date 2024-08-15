@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { PreSlideMini } from '../../../components/slides/PreSlideMini';
 import { mockDataSlide, mockDataSlideList, mockListSlide, mockSlideDetailGet } from '../../../config/mockdata';
 import { useParams } from 'react-router-dom';
@@ -50,18 +50,17 @@ export const SlideDetail = () => {
                         {/* <div className={`h-[calc(${slideHeight})] w-auto aspect-video bg-white`}> */}
                         <div className={`text-black w-[80%] aspect-video bg-white relative overflow-hidden`}>
                             {currentSlide.elements.map((item) => {
-                                if (item.elementType == 'TEXT') {
+                                if (item.elementType == 'TEXT' || item.elementType == 'HEADING') {
                                     return (
-                                        <div key={item.id} className={`text-center z-[${item.layer}] relative`} style={{ top: `calc(${item.posY}px)`, left: `calc(${item.posX}px)`, width: `calc(${item.sizeX}px)`, height: `calc(${item.sizeY}px)` }}>
-                                            <div className='text-3xl relative' style={{ top: `calc(${item.posY}px)`, left: `calc(${item.posX}px)`, width: `calc(${item.sizeX}px)`, height: `calc(${item.sizeY}px)` }}>{item.headingTitle}</div>
-                                            <div className='text-2xl relative' style={{ top: `calc(${item.posY}px)`, left: `calc(${item.posX}px)`, width: `calc(${item.sizeX}px)`, height: `calc(${item.sizeY}px)` }}>{item.content}</div>
+                                        <div key={item.id} className={`text-center z-[${item.layer}] relative`} style={{ bottom: `calc(${item.posY / 10}px)`, left: `calc(${item.posX / 10}px)` }}>
+                                            <div className='text-3xl relative'/>
                                         </div>
                                     )
                                 }
                                 else if (item.elementType == 'IMAGE') {
                                     return (
-                                        <div key={item.id} className={`z-[${item.layer}] relative`} style={{ top: `calc(${item.posY}px)`, left: `calc(${item.posX}px)`, width: `calc(${item.sizeX}px)`, height: `calc(${item.sizeY}px)` }}>
-                                            <img className='relative' src={item.imageUrl} alt={item.headingTitle} style={{ top: `calc(${item.posY}px)`, left: `calc(${item.posX}px)`, width: `calc(${item.sizeX}px)`, height: `calc(${item.sizeY}px)` }} />
+                                        <div key={item.id} className={`z-[${item.layer}] relative`} style={{ bottom: `calc(${item.posY / 10}px)`, left: `calc(${item.posX / 10}px)`, width: `calc(${item.sizeX / 10}px)`, height: `calc(${item.sizeY / 10}px)` }}>
+                                            <img className='scale-[0.2] relative' src={item.imageUrl} alt={item.headingTitle} />
                                         </div>
                                     )
                                 }
