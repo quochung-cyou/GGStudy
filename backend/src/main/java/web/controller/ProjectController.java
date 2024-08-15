@@ -6,10 +6,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import web.dto.CustomResponse;
 import web.dto.ProjectDTO;
+import web.model.OutlineResponse;
 import web.model.Project;
 import web.service.ProjectService;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/v1/projects")
@@ -35,6 +37,11 @@ public class ProjectController {
     public Project createProject(@RequestParam String topicName,
                                  @RequestParam(required = false, defaultValue = "") String additionalInfo) throws IOException {
         return projectService.createProjectsFromGemini(topicName, additionalInfo);
+    }
+
+    @PostMapping("/outline")
+    public List<OutlineResponse> createOutlineProject(@RequestParam String topicName) throws IOException {
+        return projectService.createProjectOutlines(topicName);
     }
 
     @PutMapping("")
