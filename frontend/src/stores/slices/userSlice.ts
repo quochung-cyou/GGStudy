@@ -24,4 +24,8 @@
 // // Action creators are generated for each case reducer function
 // export const { setData, setUsername  } = userSlice.actions
 
-// export default userSlice.reducer
+
+//mock for pass import
+export const userSlice = {
+
+}
