@@ -3,6 +3,7 @@ import { homeIcon, favoriteIcon, trashIcon, accountIcon, settingIcon, feedbackIc
 
 import './style.css'
 import { useNavigate } from 'react-router-dom'
+import {useAuth0} from "@auth0/auth0-react";
 interface SideBarProps extends React.HTMLAttributes<HTMLDivElement> {
     chooseTab?: (tab: string) => string
 }
@@ -30,20 +31,22 @@ const Button = ({ icon, title, active, handleClick, ...props }: ButtonProps) => 
 
 export const SideBar = ({chooseTab}: SideBarProps) => {
     const navigation = useNavigate()
+    const { user, isAuthenticated, isLoading, logout } = useAuth0();
     const getActiveState = (tab: string) => {
         // Placeholder logic to determine if a button is active
         // You should adjust this based on your actual requirements
         return chooseTab ? chooseTab(tab) === tab : false;
     }
     return (
+        isAuthenticated && (
         <div className=' fixed w-[15%] bg-[#6366F11A] min-w-[280px] px-5 pr-10 h-full border-r-[#C396FE80] border border-l-0 border-y-0 pt-5'>
             <div className='flex items-center my-3'>
                 <div className='aspect-square p-5 bg-green-500 rounded-full h-[56px] flex justify-center items-center mr-3'>
-                    <div className='text-3xl font-bold'>M</div>
+                    <div className='text-1xl font-bold'>{user?.name.split(' ').map(word => word[0]).join('')}</div>
                 </div>
                 <div>
-                    <div>MH007</div>
-                    <div className='text-[#818181] font-light text-[14px]'>hanhtm.mpc@gmail.com</div>
+                    <div>{user?.name}</div>
+                    <div className='text-[#818181] font-light text-[12px]'>{user?.email}</div>
                 </div>
             </div>
             <div className='w-full relative'>
@@ -56,10 +59,10 @@ export const SideBar = ({chooseTab}: SideBarProps) => {
                 <Button icon={settingIcon} title='Settings' active={getActiveState('settings')} handleClick={() => navigation('/settings')} />
                 <Button icon={feedbackIcon} title='Feedback' active={getActiveState('feedback')} handleClick={() => navigation('/feedback')} />
                 <div className="divider">&nbsp;</div>
-                <Button icon={signOutIcon} title='Sign out' active={getActiveState('sign-out')} handleClick={() => navigation('/sign-out')} />
+                <Button icon={signOutIcon} title='Sign out' active={getActiveState('sign-out')} handleClick={() => logout( { returnTo: window.location.origin } )} />
             </div>
         </div>
-    )
+    ))
 }
 
 
