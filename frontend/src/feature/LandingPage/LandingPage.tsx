@@ -14,11 +14,11 @@ import studenticon from "../../assets/student.svg";
 import shufflingicon from "../../assets/shuffle.svg";
 
 export const LandingPage = () => {
+
+
     useEffect(() => {
         gsap.registerPlugin(useGSAP);
         dotanimation();
-        //try call api to test cor
-        fetch('http://api-ggstudy.ptit.id.vn/v1/projects').then(response => response.json()).then(data => console.log(data));
     }, []);
 
     return (
