@@ -4,58 +4,64 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
+import web.common.dto.ProjectDTO;
+import web.common.dto.ProjectInputFormat;
+import web.common.dto.SlideInputFormat;
+import web.common.exception.NotFoundException;
 import web.common.shared.ContentType;
 import web.common.shared.SlideType;
-import web.dao.ProjectRepository;
-import web.dao.TemplateRepository;
-import web.dto.ProjectDTO;
+import web.common.utils.PageableUtils;
+import web.dao.repository.ProjectRepository;
+import web.dao.repository.TemplateRepository;
+import web.dao.spec.ProjectSpecification;
+import web.mapper.ProjectMapper;
 import web.model.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
-import static web.utils.Constants.*;
+import static web.common.shared.Constants.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProjectServiceImpl implements ProjectService {
 
     public static final String BASIC_PROMPT_PATH = "classpath:data/prompt.txt";
-    private static final Logger log = LoggerFactory.getLogger(ProjectServiceImpl.class);
 
 
     private final ProjectRepository projectRepository;
     private final TemplateRepository templateRepository;
-    private final GeminiService geminiService;
+
+    private final ProjectMapper projectMapper;
+
     private final ObjectMapper objectMapper;
     private final ResourceLoader loader;
     private final Random random;
+
+    private final GeminiClient geminiClient;
     private final ImageService imageService;
 
     @Override
-    public Page<ProjectDTO> findAll(int size, int page, String sortBy) {
-        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 20), Sort.Direction.ASC, sortBy);
-        List<Project> projectList = projectRepository.findAll();
-        List<ProjectDTO> projectDTOList = new ArrayList<>();
-        for (Project project : projectList) {
-            ProjectDTO projectDTO = new ProjectDTO(project);
-            projectDTOList.add(projectDTO);
-        }
-        return new PageImpl<>(projectDTOList, pageable, projectDTOList.size());
+    public Page<ProjectDTO> findAll(int size, int page, String sortBy, String currentUser) {
+        Pageable pageable = PageableUtils.createPageable(size, page, sortBy);
+        Specification<Project> specification = ProjectSpecification.fromCreatedBy(currentUser);
+        Page<Project> projectList = projectRepository.findAll(specification, pageable);
+        return projectList.map(projectMapper::toDTO);
     }
 
     @Override
@@ -67,7 +73,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public Project createProjectsFromGemini(String topicName, String additionalInfo) throws IOException {
         String prompt = constructTopicPrompt(topicName, additionalInfo);
-        String response = geminiService.getDataFromPrompt(prompt);
+        String response = geminiClient.getDataFromPrompt(prompt);
         log.info("Response from Gemini: {}", response);
         var projectInputFormat = objectMapper.readValue(formatString(response), ProjectInputFormat.class);
 
@@ -76,8 +82,6 @@ public class ProjectServiceImpl implements ProjectService {
         extractSlide(projectInputFormat, theProject);
         setImageUrlElement(theProject);
         projectRepository.save(theProject);
-
-        System.out.println("Slides saved successfully");
         return theProject;
     }
 

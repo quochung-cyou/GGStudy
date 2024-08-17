@@ -1,12 +1,12 @@
 package web.service;
 
 import org.springframework.data.domain.Page;
-import web.dto.ProjectDTO;
+import web.common.dto.ProjectDTO;
 import web.model.Project;
 import java.io.IOException;
 
 public interface ProjectService {
-    Page<ProjectDTO> findAll(int size, int page, String sortBy);
+    Page<ProjectDTO> findAll(int size, int page, String sortBy, String currentUser);
 
     Project findById(String id);
 
