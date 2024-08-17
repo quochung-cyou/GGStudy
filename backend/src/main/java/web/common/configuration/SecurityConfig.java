@@ -50,7 +50,7 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowCredentials(true);
-        corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "https://api-ggstudy.ptit.id.vn"));
+        corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "https://ggstudy.ptit.id.vn"));
         corsConfiguration.setAllowedHeaders(Arrays.asList("Origin", "Access-Control-Allow-Origin", "Content-Type",
                 "Accept", "Authorization", "X-Requested-With",
                 "Access-Control-Request-Method", "Access-Control-Request-Headers", "Access-Control-Allow-Headers"));
