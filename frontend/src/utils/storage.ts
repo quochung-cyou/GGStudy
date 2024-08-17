@@ -1,4 +1,4 @@
-const storagePrefix = 'training_';
+const storagePrefix = 'ggstudy_';
 const storage = {
   set: (key: string, value: any) => {
     localStorage.setItem(storagePrefix + key, JSON.stringify(value));

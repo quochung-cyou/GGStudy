@@ -11,7 +11,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
 @RequiredArgsConstructor
-public class GeminiServiceImpl implements GeminiService {
+public class GeminiClientImpl implements GeminiClient {
 
     private final ObjectMapper objectMapper;
 

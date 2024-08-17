@@ -3,6 +3,12 @@ spring:
     name: GGStudy
   profiles:
     active: local
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          audiences: https://api-ggstudy.ptit.id.vn
+          issuer-uri: https://dev-q6qkwuzccru8mu10.us.auth0.com/
 logging:
   file:
     path: backend/logs
