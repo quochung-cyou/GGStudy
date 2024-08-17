@@ -1,4 +1,4 @@
-package web.dto;
+package web.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -10,6 +10,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @JsonPropertyOrder({"data", "message"})
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CustomResponse<T> implements Serializable {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private T data;

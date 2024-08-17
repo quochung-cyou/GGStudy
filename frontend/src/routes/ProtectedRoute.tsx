@@ -3,8 +3,12 @@ import {useAuth0} from '@auth0/auth0-react';
 import storage from "../utils/storage.ts";
 
 const ProtectedRoute = ({children}) => {
-    const {isAuthenticated, loginWithRedirect, getAccessTokenSilently} = useAuth0();
+    const {isAuthenticated, loginWithRedirect, getAccessTokenSilently, isLoading} = useAuth0();
     const location = useLocation();
+
+    if (isLoading) {
+        return null;
+    }
 
     if (!isAuthenticated) {
         console.log('ProtectedRoute: user is not authenticated, redirecting to login page...');

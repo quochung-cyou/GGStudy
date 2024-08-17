@@ -1,11 +1,14 @@
 package web.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import web.dto.CustomResponse;
-import web.dto.ProjectDTO;
+import web.common.dto.CustomResponse;
+import web.common.dto.ProjectDTO;
+import web.common.utils.SecurityUtils;
 import web.model.Project;
 import web.service.ProjectService;
 
@@ -14,32 +17,33 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/v1/projects")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
+@Slf4j
 public class ProjectController {
     private final ProjectService projectService;
+    private final SecurityUtils securityUtils;
 
-    @GetMapping("")
+    @GetMapping()
     public CustomResponse<Page<ProjectDTO>> findAll(
             @RequestParam(required = false, defaultValue = "20") Integer size,
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "id") String sortBy) {
-        return new CustomResponse<>(projectService.findAll(size, page, sortBy),"Project list.");
+        return new CustomResponse<>(projectService.findAll(size, page, sortBy, securityUtils.getCurrentUser()));
     }
 
     @GetMapping("/{id}")
-    public Project findById(@PathVariable String id) {
-        return projectService.findById(id);
+    public CustomResponse<Project> findById(@PathVariable String id) {
+        return new CustomResponse<>(projectService.findById(id));
     }
 
     @PostMapping
-    public Project createProject(@RequestParam String topicName,
+    public CustomResponse<Project> createProject(@RequestParam String topicName,
                                  @RequestParam(required = false, defaultValue = "") String additionalInfo) throws IOException {
-        return projectService.createProjectsFromGemini(topicName, additionalInfo);
+        return new CustomResponse<>(projectService.createProjectsFromGemini(topicName, additionalInfo));
     }
 
-    @PutMapping("")
-    public Project updateProject(@RequestBody Project theProject) {
-        return projectService.save(theProject);
+    @PutMapping()
+    public CustomResponse<Project> updateProject(@RequestBody Project theProject) {
+        return new CustomResponse<>(projectService.save(theProject));
     }
 
     @DeleteMapping("/{id}")

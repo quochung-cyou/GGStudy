@@ -1,4 +1,4 @@
-package web.utils;
+package web.common.shared;
 
 public class Constants {
     public static final String TEXT_ONLY = "TEXT_ONLY";

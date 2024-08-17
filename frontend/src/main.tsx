@@ -10,7 +10,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             domain="dev-q6qkwuzccru8mu10.us.auth0.com"
             clientId="2EnR3RZSo0akaVPIZqd1EBMZzHghgOKx"
             cacheLocation={'localstorage'}
-            useCookiesForTransactions={true}
+            useRefreshTokens={true}
             authorizationParams={
                 {
                     audience: 'https://api-ggstudy.ptit.id.vn',
