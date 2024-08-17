@@ -1,7 +1,6 @@
-package web.model;
+package web.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
 

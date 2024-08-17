@@ -26,7 +26,7 @@ export const SlideDetail = () => {
     useEffect(() => {
         const fetchSlide = async () => {
             const slideget = await getSlideById(id);
-            setData(slideget);
+            setData(slideget.data);
             setCurrentSlide(slideget.slides[0]);
         }
         fetchSlide();

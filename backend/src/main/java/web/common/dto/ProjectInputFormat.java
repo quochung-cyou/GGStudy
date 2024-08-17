@@ -1,4 +1,4 @@
-package web.model;
+package web.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;

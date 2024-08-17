@@ -2,6 +2,6 @@ package web.service;
 
 import java.io.IOException;
 
-public interface GeminiService {
+public interface GeminiClient {
     public String getDataFromPrompt(String promptPath) throws IOException;
 }

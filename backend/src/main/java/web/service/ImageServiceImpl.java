@@ -7,17 +7,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import web.dao.ImageRepository;
-import web.dto.ImageDTO;
+import web.common.exception.NotFoundException;
+import web.common.utils.PageableUtils;
 import web.model.Image;
-import web.model.NotFoundException;
+import web.dao.repository.ImageRepository;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -80,15 +79,9 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public Page<ImageDTO> findAll(int size, int page, String sortBy) {
-        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 10), Sort.Direction.ASC, sortBy);
-        List<Image> images = imageRepository.findAll();
-        List<ImageDTO> imageDTOList = new ArrayList<>();
-        for (Image image : images) {
-            ImageDTO imageDTO = new ImageDTO(image);
-            imageDTOList.add(imageDTO);
-        }
-        return new PageImpl<>(imageDTOList, pageable, imageDTOList.size());
+    public Page<Image> findAll(int size, int page, String sortBy) {
+        Pageable pageable = PageableUtils.createPageable(size, page, sortBy);
+        return imageRepository.findAll(pageable);
     }
 
     @Override
