@@ -1,0 +1,17 @@
+.generate-button {
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 16px 38px;
+gap: 10px;
+
+background: radial-gradient(58.88% 80.47% at 48.05% 100%, #C396FE 0%, #9747FF 32.71%, rgba(151, 71, 255, 0) 100%) /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */, #2D1BAF;
+border: 2px solid rgba(255, 180, 255, 0.15);
+box-shadow: 0px 0px 21.5px 12px rgba(151, 71, 255, 0.2), 0px 0px 0px 6px rgba(90, 45, 132, 0.2), inset 0px -19px 20px -11px rgba(255, 180, 255, 0.1), inset 16px -8px 9.7px -11px rgba(255, 180, 255, 0.08), inset -22px -10px 9.7px -11px rgba(151, 71, 255, 0.1);
+border-radius: 40px;
+
+}

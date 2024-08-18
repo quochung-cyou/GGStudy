@@ -12,9 +12,9 @@ jobs:
       - name: Change directory to frontend and install dependencies
         run: |
           cd frontend
-          npm ci
+          npm install
       - name: Build project
-        run: npm run build
+        run: npm run build-prod
         working-directory: ./frontend
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:

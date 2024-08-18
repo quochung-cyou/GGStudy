@@ -1,8 +1,8 @@
 package web.service;
 
 import org.springframework.stereotype.Service;
-import web.dao.SlideRepository;
-import web.model.NotFoundException;
+import web.dao.repository.SlideRepository;
+import web.common.exception.NotFoundException;
 import web.model.Slide;
 
 import java.util.List;
