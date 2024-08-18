@@ -139,12 +139,7 @@ public class ProjectServiceImpl implements ProjectService {
     private String formatString(String jsonString) throws JsonProcessingException {
         JsonNode rootNode = objectMapper.readTree(jsonString);
         JsonNode text = rootNode.path("candidates").get(0).path("content").path("parts").get(0);
-        StringBuilder str = new StringBuilder(text.path("text").asText());
-        String json = "```json\n";
-        str.delete(0, json.length());
-        String endJson = "\n```";
-        str.delete(str.length() - endJson.length(), str.length());
-        return str.toString();
+        return text.path("text").asText();
     }
 
 
