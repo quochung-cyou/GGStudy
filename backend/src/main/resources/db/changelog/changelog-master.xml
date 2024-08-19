@@ -13,5 +13,9 @@
     <changeSet id="003_create_images_table.sql" author="NguyenBui256" dbms="mysql" onValidationFail="HALT" failOnError="true">
         <sqlFile path="db/changelog/003_create_images_table.sql"/>
     </changeSet>
+
+    <changeSet id="004_extra_field_be.sql" author="quochungcyou" dbms="mysql" onValidationFail="HALT" failOnError="true">
+        <sqlFile path="db/changelog/004_extra_field_be.sql"/>
+    </changeSet>
 </databaseChangeLog>
 

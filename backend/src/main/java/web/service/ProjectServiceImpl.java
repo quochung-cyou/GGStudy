@@ -21,6 +21,7 @@ import web.common.exception.NotFoundException;
 import web.common.shared.ContentType;
 import web.common.shared.SlideType;
 import web.common.utils.PageableUtils;
+import web.dao.repository.FieldStyleRepository;
 import web.dao.repository.ProjectRepository;
 import web.dao.repository.TemplateRepository;
 import web.dao.spec.ProjectSpecification;
@@ -31,9 +32,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static web.common.shared.Constants.*;
 
@@ -47,6 +47,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
     private final TemplateRepository templateRepository;
+    private final FieldStyleRepository fieldStyleRepository;
 
     private final ProjectMapper projectMapper;
 
@@ -67,8 +68,23 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Project findById(String id) {
-        return projectRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Project not found with the given ID."));
+        var project = projectRepository.findById(id);
+        if (project.isEmpty()) throw new NotFoundException("Project not found with the given ID.");
+        var projectGet = project.get();
+        var slides = projectGet.getSlides();
+        for (Slide slide : slides) {
+            var elements = slide.getElements();
+            List<String> elementRootTemplateIds = elements.stream().map(Element::getRootElementTemplateId).collect(Collectors.toList());
+            List<FieldStyle> fieldStyles = fieldStyleRepository.findByEntityIdInAndEntityType(elementRootTemplateIds, "ELEMENT");
+            Map<String, List<FieldStyle>> mapFieldStyle = fieldStyles.stream().collect(Collectors.groupingBy(FieldStyle::getEntityId));
+            for (Element element : elements) {
+                List<FieldStyle> fieldStyle = mapFieldStyle.get(element.getRootElementTemplateId());
+                if (fieldStyle != null) {
+                    element.setFieldStyles(fieldStyle);
+                }
+            }
+        }
+        return projectGet;
     }
 
     @Override
@@ -165,6 +181,8 @@ public class ProjectServiceImpl implements ProjectService {
             Element newSlideElement = extractTemplateElement(templateElement);
             newSlideElement.setContent(geminiSlide.getSlideTopicName());
             newSlideElement.setSlideId(theSlide.getId());
+            newSlideElement.setRootElementTemplateId(templateElement.getId());
+
             theSlide.getElements().add(newSlideElement);
         }
         theSlide.setHeadingTitle(geminiSlide.getSlideTopicName());
@@ -183,6 +201,7 @@ public class ProjectServiceImpl implements ProjectService {
             } else if (templateElement.getElementType().equals(ContentType.HEADING.toString())) {
                 newSlideElement.setContent(geminiSlide.getHeadingTitle());
             }
+            newSlideElement.setRootElementTemplateId(templateElement.getId());
             newSlideElement.setSlideId(theSlide.getId());
             theSlide.getElements().add(newSlideElement);
         }
@@ -208,6 +227,7 @@ public class ProjectServiceImpl implements ProjectService {
             } else if (templateElement.getElementType().equals(ContentType.HEADING.toString())) {
                 newSlideElement.setContent(geminiSlide.getHeadingTitle());
             }
+            newSlideElement.setRootElementTemplateId(templateElement.getId());
             newSlideElement.setSlideId(theSlide.getId());
             theSlide.getElements().add(newSlideElement);
         }
