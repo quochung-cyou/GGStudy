@@ -14,6 +14,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             authorizationParams={
                 {
                     audience: 'https://api-ggstudy.ptit.id.vn',
+                    scope: 'email profile openid offline_access',
                 }
             }
              redirectUri={window.location.origin + '/callback'}>
