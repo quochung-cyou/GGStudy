@@ -73,9 +73,15 @@ public class ImageServiceImpl implements ImageService {
     }
 
     public String improvePrompt(String prompt) {
-        return prompt + " high resolution" +
-                " no watermark" +
-                " free license";
+        return prompt +  " high resolution" +
+                " site:freepik.com" +
+                " OR site:unsplash.com" +
+                " OR site:pexels.com" +
+                " OR site:pixabay.com" +
+                " OR site:istockphoto.com" +
+                " OR site:freeimages.com" +
+                " OR site:stocksnap.io" +
+                " OR site:stockvault.net";
     }
 
     @Override

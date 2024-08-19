@@ -30,6 +30,7 @@ import web.model.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -73,8 +74,10 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public Project createProjectsFromGemini(String topicName, String additionalInfo) throws IOException {
         String prompt = constructTopicPrompt(topicName, additionalInfo);
+        Instant start = Instant.now();
         String response = geminiClient.getDataFromPrompt(prompt);
         log.info("Response from Gemini: {}", response);
+        log.info("Time taken to get response from Gemini: {}", Instant.now().toEpochMilli() - start.toEpochMilli());
         var projectInputFormat = objectMapper.readValue(formatString(response), ProjectInputFormat.class);
 
         Project theProject = new Project();
