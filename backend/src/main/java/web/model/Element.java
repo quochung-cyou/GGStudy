@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -58,4 +60,10 @@ public class Element {
 
     @Column(name = "duration")
     private int duration;
+
+    @Column(name = "root_element_template_id")
+    private String rootElementTemplateId;
+
+    @Transient
+    private List<FieldStyle> fieldStyles;
 }
