@@ -30,6 +30,7 @@ import web.model.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -73,8 +74,10 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public Project createProjectsFromGemini(String topicName, String additionalInfo) throws IOException {
         String prompt = constructTopicPrompt(topicName, additionalInfo);
+        Instant start = Instant.now();
         String response = geminiClient.getDataFromPrompt(prompt);
         log.info("Response from Gemini: {}", response);
+        log.info("Time taken to get response from Gemini: {}", Instant.now().toEpochMilli() - start.toEpochMilli());
         var projectInputFormat = objectMapper.readValue(formatString(response), ProjectInputFormat.class);
 
         Project theProject = new Project();
@@ -139,12 +142,7 @@ public class ProjectServiceImpl implements ProjectService {
     private String formatString(String jsonString) throws JsonProcessingException {
         JsonNode rootNode = objectMapper.readTree(jsonString);
         JsonNode text = rootNode.path("candidates").get(0).path("content").path("parts").get(0);
-        StringBuilder str = new StringBuilder(text.path("text").asText());
-        String json = "```json\n";
-        str.delete(0, json.length());
-        String endJson = "\n```";
-        str.delete(str.length() - endJson.length(), str.length());
-        return str.toString();
+        return text.path("text").asText();
     }
 
 
