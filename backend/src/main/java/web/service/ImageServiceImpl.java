@@ -35,9 +35,14 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     public Image searchImages(String prompt) throws JsonProcessingException {
-        prompt = improvePrompt(prompt);
-        log.info("Searching for images with prompt: {}", prompt);
-        String finalPrompt = prompt;
+        return searchWithImprovePrompt(prompt, true);
+    }
+
+    private Image searchWithImprovePrompt(String prompt, boolean improvePrompt) throws JsonProcessingException {
+        String newPrompt = prompt;
+        if (improvePrompt) newPrompt = improvePrompt(prompt);
+        log.info("Searching for images with prompt: {}", newPrompt);
+        String finalPrompt = newPrompt;
         String response = WebClient.builder().baseUrl("https://www.googleapis.com")
                 .build().get()
                 .uri(uriBuilder -> uriBuilder
@@ -64,6 +69,10 @@ public class ImageServiceImpl implements ImageService {
                 .getBody();
 
         JSONObject jsonObject = new JSONObject(response);
+        if (!jsonObject.has("items") || jsonObject.getJSONArray("items").isEmpty()) {
+            log.error("Cannot find image with prompt: {}", prompt);
+            return searchWithImprovePrompt(prompt, false);
+        }
         JSONArray jsonArray = jsonObject.getJSONArray("items");
         String link = objectMapper.readTree(jsonArray.getJSONObject(0).toString()).path("link").asText();
         log.info("Image link: {}", link);
@@ -73,7 +82,7 @@ public class ImageServiceImpl implements ImageService {
     }
 
     public String improvePrompt(String prompt) {
-        return prompt +  " high resolution" +
+        return prompt +
                 " site:freepik.com" +
                 " OR site:unsplash.com" +
                 " OR site:pexels.com" +

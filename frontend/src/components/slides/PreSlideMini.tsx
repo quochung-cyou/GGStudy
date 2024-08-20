@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from 'react'
 import {ISlide} from '../../inteface/dataInterface'
+import GoogleFontLoader from "react-google-font";
 
 interface PreSlideMiniProps extends React.HTMLAttributes<HTMLDivElement> {
     slides: ISlide[]
@@ -19,8 +20,19 @@ export const PreSlideMini = ({slides, handleClick, chooseIndex, ...rest}: PreSli
             });
         }
     }, [chooseIndex]);
+    const miniDiff = (211 / 1109);
+    const percentDiff = 1109.633 / 1920 * miniDiff;
+    const percentDiffFont = 101/134*0.9 * miniDiff;
 
-    const percentDiff = 1109.633 / 1920 * (211 / 1109);
+    <GoogleFontLoader
+        fonts={[
+            {
+                font: 'Poppins',
+                weights: [400, 900]
+            }
+        ]}
+        subsets={['cyrillic-ext', 'greek']}
+    />
 
     return (
         <div className='w-full flex'>
@@ -32,15 +44,29 @@ export const PreSlideMini = ({slides, handleClick, chooseIndex, ...rest}: PreSli
                         <div
                             className='bg-white text-black relative h-full aspect-video rounded-2xl hover:ring-1 overflow-hidden'>
                             {item.elements.map((item) => {
+                                let fontWeightStyle = item.fieldStyles ? item.fieldStyles.find(style => style.propertyName === "fontWeight") : undefined;
+                                let textTransform = item.fieldStyles ? item.fieldStyles.find(style => style.propertyName === "textTransform") : undefined;
+                                let fontSize = item.fieldStyles ? item.fieldStyles.find(style => style.propertyName === "fontSize") : undefined;
+                                let letterSpacing = item.fieldStyles ? item.fieldStyles.find(style => style.propertyName === "letterSpacing") : undefined;
+                                let lineHeight = item.fieldStyles ? item.fieldStyles.find(style => style.propertyName === "lineHeight") : undefined;
                                 if (item.elementType == 'TEXT') {
                                     return (
                                         <div key={item.id} className={`text-start absolute`} style={{
                                             top: `calc(${item.posY * percentDiff}px)`,
                                             left: `calc(${item.posX * percentDiff}px)`,
-                                            zIndex: item.layer
+                                            maxWidth: `calc(${item.sizeX * percentDiff}px)`,
+                                            maxHeight: `calc(${item.sizeY * percentDiff}px)`,
+                                            zIndex: item.layer,
+                                            letterSpacing: letterSpacing ? `calc(${letterSpacing.propertyValue/1000}em)` : undefined
                                         }}>
-                                            <p style={{fontSize: `calc(${30 * percentDiff}px)`}}>{item.content}</p>
-
+                                            <p style={{
+                                                fontSize: fontSize ? `${fontSize.propertyValue * percentDiffFont}px` : `calc(${20 * percentDiff}px)`,
+                                                fontWeight: fontWeightStyle ? fontWeightStyle.propertyValue : undefined,
+                                                fontFamily: 'Poppins, sans-serif',
+                                                textTransform: textTransform ? textTransform.propertyValue : undefined,
+                                                lineHeight: lineHeight ? `${lineHeight.propertyValue*fontSize.propertyValue*percentDiffFont}px` : undefined,
+                                                wordBreak: 'break-word'
+                                            }}>{item.content}</p>
                                         </div>
                                     )
                                 } else if (item.elementType == 'HEADING') {
@@ -48,10 +74,19 @@ export const PreSlideMini = ({slides, handleClick, chooseIndex, ...rest}: PreSli
                                         <div key={item.id} className={`text-start absolute`} style={{
                                             top: `calc(${item.posY * percentDiff}px)`,
                                             left: `calc(${item.posX * percentDiff}px)`,
-                                            zIndex: item.layer
+                                            maxWidth: `calc(${item.sizeX * percentDiff}px)`,
+                                            maxHeight: `calc(${item.sizeY * percentDiff}px)`,
+                                            zIndex: item.layer,
+                                            letterSpacing: letterSpacing ? `calc(${letterSpacing.propertyValue/1000}em)` : undefined
                                         }}>
-                                            <h1 style={{fontSize: `calc(${60 * percentDiff}px)`}}>{item.content}</h1>
-
+                                            <p style={{
+                                                fontSize: fontSize ? `${fontSize.propertyValue * percentDiffFont}px` : `calc(${60 * percentDiff}px)`,
+                                                fontWeight: fontWeightStyle ? fontWeightStyle.propertyValue : undefined,
+                                                fontFamily: 'Poppins, sans-serif',
+                                                textTransform: textTransform ? textTransform.propertyValue : undefined,
+                                                lineHeight: lineHeight ? `${lineHeight.propertyValue*fontSize.propertyValue*percentDiffFont}px` : undefined,
+                                                wordBreak: 'break-word'
+                                            }}>{item.content}</p>
                                         </div>
                                     )
                                 } else if (item.elementType == 'IMAGE') {
