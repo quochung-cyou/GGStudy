@@ -59,7 +59,7 @@ export const SideBar = ({chooseTab}: SideBarProps) => {
                 <Button icon={settingIcon} title='Settings' active={getActiveState('settings')} handleClick={() => navigation('/settings')} />
                 <Button icon={feedbackIcon} title='Feedback' active={getActiveState('feedback')} handleClick={() => navigation('/feedback')} />
                 <div className="divider">&nbsp;</div>
-                <Button icon={signOutIcon} title='Sign out' active={getActiveState('sign-out')} handleClick={() => logout( { returnTo: window.location.origin } )} />
+                <Button icon={signOutIcon} title='Sign out' active={getActiveState('sign-out')} handleClick={() => logout( { logoutParams: { returnTo: window.location.origin } })} />
             </div>
         </div>
     ))

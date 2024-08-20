@@ -1,10 +1,11 @@
 import React, {useEffect, useState} from 'react'
 import {PreSlideMini} from '../../../components/slides/PreSlideMini';
-import {mockDataSlide, mockDataSlideList, mockListSlide, mockSlideDetailGet} from '../../../config/mockdata';
+import {mockSlideDetailGet} from '../../../config/mockdata';
 import {useParams} from 'react-router-dom';
 import {Logo} from '../../../assets';
 import {getSlideById} from '../api/getSlides';
 import {SideSlideBar} from '../../../components/sideBar/SideSlideBar';
+import GoogleFontLoader from 'react-google-font'
 
 export const SlideDetail = () => {
     const {id = ''} = useParams()
@@ -22,12 +23,23 @@ export const SlideDetail = () => {
     // khi change slide thì sẽ cập nhật hiển thị <SideSlideBar>
 
     const percentDiff = 1109.633 / 1920;
+    const percentDiffFont = 101/134*0.9;
+
+    <GoogleFontLoader
+        fonts={[
+            {
+                font: 'Poppins',
+                weights: [400, 900]
+            }
+        ]}
+        subsets={['cyrillic-ext', 'greek']}
+    />
 
     useEffect(() => {
         const fetchSlide = async () => {
             const slideget = await getSlideById(id);
             setData(slideget.data);
-            setCurrentSlide(slideget.slides[0]);
+            setCurrentSlide(slideget.data.slides[0]);
         }
         fetchSlide();
     }, [id])
@@ -55,15 +67,29 @@ export const SlideDetail = () => {
                         <div className={`text-black  aspect-video bg-white relative overflow-hidden`}
                              style={{width: '1109px', height: '624px'}}>
                             {currentSlide.elements.map((item) => {
+                                let fontWeightStyle = item.fieldStyles ? item.fieldStyles.find(style => style.propertyName === "fontWeight") : undefined;
+                                let textTransform = item.fieldStyles ? item.fieldStyles.find(style => style.propertyName === "textTransform") : undefined;
+                                let fontSize = item.fieldStyles ? item.fieldStyles.find(style => style.propertyName === "fontSize") : undefined;
+                                let letterSpacing = item.fieldStyles ? item.fieldStyles.find(style => style.propertyName === "letterSpacing") : undefined;
+                                let lineHeight = item.fieldStyles ? item.fieldStyles.find(style => style.propertyName === "lineHeight") : undefined;
                                 if (item.elementType == 'TEXT') {
                                     return (
                                         <div key={item.id} className={`text-start absolute`} style={{
                                             top: `calc(${item.posY * percentDiff}px)`,
                                             left: `calc(${item.posX * percentDiff}px)`,
-                                            zIndex: item.layer
+                                            maxWidth: `calc(${item.sizeX * percentDiff}px)`,
+                                            maxHeight: `calc(${item.sizeY * percentDiff}px)`,
+                                            zIndex: item.layer,
+                                            letterSpacing: letterSpacing ? `calc(${letterSpacing.propertyValue/1000}em)` : undefined
                                         }}>
-                                            <p style={{fontSize: `calc(${30 * percentDiff}px)`}}>{item.content}</p>
-
+                                            <p style={{
+                                                fontSize: fontSize ? `${fontSize.propertyValue * percentDiffFont}px` : `calc(${20 * percentDiff}px)`,
+                                                fontWeight: fontWeightStyle ? fontWeightStyle.propertyValue : undefined,
+                                                fontFamily: 'Poppins, sans-serif',
+                                                textTransform: textTransform ? textTransform.propertyValue : undefined,
+                                                lineHeight: lineHeight ? `${lineHeight.propertyValue*fontSize.propertyValue*percentDiffFont}px` : undefined,
+                                                wordBreak: 'break-word'
+                                            }}>{item.content}</p>
                                         </div>
                                     )
                                 } else if (item.elementType == 'HEADING') {
@@ -71,10 +97,19 @@ export const SlideDetail = () => {
                                         <div key={item.id} className={`text-start absolute`} style={{
                                             top: `calc(${item.posY * percentDiff}px)`,
                                             left: `calc(${item.posX * percentDiff}px)`,
-                                            zIndex: item.layer
+                                            maxWidth: `calc(${item.sizeX * percentDiff}px)`,
+                                            maxHeight: `calc(${item.sizeY * percentDiff}px)`,
+                                            zIndex: item.layer,
+                                            letterSpacing: letterSpacing ? `calc(${letterSpacing.propertyValue/1000}em)` : undefined
                                         }}>
-                                            <h1 style={{fontSize: `calc(${60 * percentDiff}px)`}}>{item.content}</h1>
-
+                                            <p style={{
+                                                fontSize: fontSize ? `${fontSize.propertyValue * percentDiffFont}px` : `calc(${60 * percentDiff}px)`,
+                                                fontWeight: fontWeightStyle ? fontWeightStyle.propertyValue : undefined,
+                                                fontFamily: 'Poppins, sans-serif',
+                                                textTransform: textTransform ? textTransform.propertyValue : undefined,
+                                                lineHeight: lineHeight ? `${lineHeight.propertyValue*fontSize.propertyValue*percentDiffFont}px` : undefined,
+                                                wordBreak: 'break-word'
+                                            }}>{item.content}</p>
                                         </div>
                                     )
                                 } else if (item.elementType == 'IMAGE') {

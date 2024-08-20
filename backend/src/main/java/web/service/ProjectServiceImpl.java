@@ -32,7 +32,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import static web.common.shared.Constants.*;
@@ -89,6 +92,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Project createProjectsFromGemini(String topicName, String additionalInfo) throws IOException {
+        Instant allStart = Instant.now();
         String prompt = constructTopicPrompt(topicName, additionalInfo);
         Instant start = Instant.now();
         String response = geminiClient.getDataFromPrompt(prompt);
@@ -99,8 +103,11 @@ public class ProjectServiceImpl implements ProjectService {
         Project theProject = new Project();
         theProject.setTitle(topicName);
         extractSlide(projectInputFormat, theProject);
+        start = Instant.now();
         setImageUrlElement(theProject);
+        log.info("Time taken to get image links: {}", Instant.now().toEpochMilli() - start.toEpochMilli());
         projectRepository.save(theProject);
+        log.info("Time taken for the whole process: {}", Instant.now().toEpochMilli() - allStart.toEpochMilli());
         return theProject;
     }
 
@@ -212,7 +219,7 @@ public class ProjectServiceImpl implements ProjectService {
         List<Template> templateList = templateRepository.findByTemplateType(TWO_IMAGES_AND_TEXT);
         Template twoImagesTemplate = templateList.get(random.nextInt(templateList.size()));
         boolean firstImageIsTaken = false;
-        for (int templateElementIndex = 0; templateElementIndex < 3; templateElementIndex++) {
+        for (int templateElementIndex = 0; templateElementIndex < twoImagesTemplate.getElements().size(); templateElementIndex++) {
             Element templateElement = twoImagesTemplate.getElements().get(templateElementIndex);
             Element newSlideElement = extractTemplateElement(templateElement);
             if (templateElement.getElementType().equals(ContentType.TEXT.toString())) {
