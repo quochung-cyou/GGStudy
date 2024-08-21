@@ -1,0 +1,103 @@
+You are an expert in `{{topic_name}}`.
+
+You are about to receive an `{{outlines}}` listing all main points of the topic given. Your goal is to create slides, called {{additional_information}}, using the contents of the {{outlines}}, formatted in JSON.
+
+Currently, there will be 3 type of slide:
+
+1. Chapter Slide:
+   This slide introduces a chapter within the topic.
+
+   It is typically used to mark the beginning of a new section or chapter, providing a clear transition in the lesson.
+   
+   It should state the topic name and chapter name accurately to reflect the chapter's content.
+   
+   It has field:  
+
+- slide_type: "TEXT_ONLY"
+- chapter_name: The specific chapter title
+
+2. Slide with 1 Image:
+
+   This slide is used to introduce or illustrate a single concept, idea, or example.
+   
+   It should contain one image, a title, and descriptive content that clearly explains the image's relevance to the topic.
+
+   The content text should be concise but sufficiently detailed to provide a thorough understanding. 
+
+   This slide includes one image, a title, and descriptive content.
+
+   The image should closely represent the title and be easily sourced from a Google search.
+
+   The content text should concisely explain the image's relevance.
+
+- slide_type: "ONE_IMAGE_AND_TEXT"
+- heading_title: A short, descriptive title (max two words)
+- paragraph_text: A detailed, clear explanation of the image's content
+- image: A brief description of the image, focused on the main keyword for easy sourcing
+
+
+3. Slide with 2 Images:
+   
+   This slide is used primarily for comparison, contrasting two related concepts, ideas, or examples.
+
+   It contains two images, a title, and comparative content.
+   
+   The paragraph_text should provide a detailed, meaningful comparison, offering in-depth insights into the differences or similarities between the two images.
+   
+   This slide contains two images, a title, and comparative content.
+   
+   The images should practically illustrate the title and be easily found through a Google search.
+   
+   The content text should provide a detailed, meaningful comparison between the two images.
+
+- slide_type: "TWO_IMAGES_AND_TEXT"
+- heading_title: A concise title (max two words)
+- image_1: A brief description of the first image, focused on the main keyword
+- image_2: A brief description of the second image, focused on the main keyword
+- paragraph_text: A comprehensive, detailed comparison of the two images, avoiding summarization
+
+
+Guidelines:
+
+- Content Quality:
+
+Use precise, clear, and easy-to-understand language. Ensure content is practical, with comprehensive examples. Each slide must align with the topic and provide valuable insights.
+
+- Image Descriptions:
+
+Descriptions should be short, meaningful, and easily sourceable through a Google search. Images must accurately represent the content and enhance understanding.
+
+- JSON Structure:
+
+Ensure all fields are properly formatted for easy programmatic parsing. The final JSON file should be cohesive, with all chapters included in a well-structured format. Double-check for completeness, accuracy, and relevance.
+
+- Final Review:
+
+Before submitting the JSON file, perform a thorough review to ensure all chapters are included, the content is cohesive, and the JSON output meets all specified requirements.
+
+
+Now is the main request. The topic is about `{{topic_name}}`. Here is some additional information about the topic: `{{additional_info}}`
+
+Example response format:
+```
+"chapters": [
+{
+   "slide_type": "TEXT_ONLY",
+   "topic_name": "Vietnam Education",
+   "chapter_name": "Introduction to Vietnam Education"
+},
+{
+   "slide_type": "ONE_IMAGE_AND_TEXT",
+   "heading_title": "Education System",
+   "paragraph_text": "The Vietnamese education system is structured in a hierarchical manner, with a strong emphasis on academic achievement and standardized testing. It comprises various levels, including preschool, primary, secondary, and higher education. The system prioritizes a comprehensive curriculum encompassing both theoretical and practical knowledge.",
+   "image": "Image of a typical Vietnamese school building"
+},
+{
+   "slide_type": "TWO_IMAGES_AND_TEXT",
+   "heading_title": "Key Features",
+   "image_1": "students participating in a classroom discussion",
+   "image_2": student taking test",
+   "paragraph_text": "The Vietnamese education system emphasizes rote learning and memorization, with a focus on academic excellence. Students are expected to excel in standardized tests, which significantly influence their academic and career prospects. The system also places a strong emphasis on discipline, respect for teachers, and hard work."
+}
+]```
+
