@@ -99,27 +99,15 @@ public class ProjectServiceImpl implements ProjectService {
         log.info("Response from Gemini: {}", response);
         log.info("Time taken to get response from Gemini: {}", Instant.now().toEpochMilli() - start.toEpochMilli());
         var projectInputFormat = objectMapper.readValue(formatString(response), ProjectInputFormat.class);
-
         Project theProject = new Project();
         theProject.setTitle(topicName);
         extractSlide(projectInputFormat, theProject);
         start = Instant.now();
-        setImageUrlElement(theProject);
+        imageService.setUrlImageElement(theProject);
         log.info("Time taken to get image links: {}", Instant.now().toEpochMilli() - start.toEpochMilli());
         projectRepository.save(theProject);
         log.info("Time taken for the whole process: {}", Instant.now().toEpochMilli() - allStart.toEpochMilli());
         return theProject;
-    }
-
-    private void setImageUrlElement(Project project) throws JsonProcessingException {
-        for (Slide slide : project.getSlides()) {
-            for (Element element : slide.getElements()) {
-                if (element.getElementType().equals(ContentType.IMAGE.toString())) {
-                    Image image = imageService.searchImages(element.getImageUrl());
-                    element.setImageUrl(image.getLink());
-                }
-            }
-        }
     }
 
     @NotNull
