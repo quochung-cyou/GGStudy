@@ -88,7 +88,6 @@ public class ImageServiceImpl implements ImageService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList()));
         allImagesFuture.thenAccept(list::addAll).join();
-        executorService.shutdown();
         for (Slide slide : project.getSlides()) {
             for (Element element : slide.getElements()) {
                 if (element.getElementType().equals(ContentType.IMAGE.toString())) {
