@@ -10,9 +10,9 @@ import java.io.Serializable;
 @Getter
 @Setter
 @JsonPropertyOrder({"data", "message"})
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class CustomResponse<T> implements Serializable {
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private T data;
     private String message;
 

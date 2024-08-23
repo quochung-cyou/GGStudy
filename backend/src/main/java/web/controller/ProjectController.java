@@ -2,7 +2,6 @@ package web.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +9,7 @@ import web.common.dto.CustomResponse;
 import web.common.dto.ProjectDTO;
 import web.common.utils.SecurityUtils;
 import web.model.Project;
+import web.model.UserChatRequest;
 import web.service.ProjectService;
 
 import java.io.IOException;
@@ -39,6 +39,13 @@ public class ProjectController {
     public CustomResponse<Project> createProject(@RequestParam String topicName,
                                  @RequestParam(required = false, defaultValue = "") String additionalInfo) throws IOException {
         return new CustomResponse<>(projectService.createProjectsFromGemini(topicName, additionalInfo));
+    }
+
+    @PostMapping("/answers")
+    public CustomResponse<String> getAnswerFromGemini(@RequestBody UserChatRequest userChatRequest) throws IOException {
+        return new CustomResponse<>(
+                projectService.getAnswerFromGemini(userChatRequest.getHistory(), userChatRequest.getQuestion())
+        );
     }
 
     @PutMapping()

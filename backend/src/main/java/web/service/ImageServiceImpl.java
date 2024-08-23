@@ -9,15 +9,27 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 import web.common.exception.NotFoundException;
+import web.common.shared.ContentType;
 import web.common.utils.PageableUtils;
+import web.model.Element;
 import web.model.Image;
 import web.dao.repository.ImageRepository;
+import web.model.Project;
+import web.model.Slide;
 
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,11 +45,68 @@ public class ImageServiceImpl implements ImageService {
     @Value("${google-search.engine-id}")
     private String engineId;
 
+    public final ExecutorService executorService = Executors.newFixedThreadPool(4);
+
     @Override
-    public Image searchImages(String prompt) throws JsonProcessingException {
-        prompt = improvePrompt(prompt);
-        log.info("Searching for images with prompt: {}", prompt);
-        String finalPrompt = prompt;
+    public Image searchImage(String prompt) throws JsonProcessingException {
+        return searchWithImprovePrompt(prompt, true);
+    }
+
+    @Override
+    @Transactional
+    public void setUrlImageElement(Project project) {
+        List<CompletableFuture<Pair<String, Image>>> futures = new ArrayList<>();
+        Map<String, Image> mapImage = new HashMap<>();
+        for (Slide slide : project.getSlides()) {
+            for (Element element : slide.getElements()) {
+                if (element.getElementType().equals(ContentType.IMAGE.toString())) {
+                    Mono<Pair<String, Image>> mono = Mono.fromCallable(() -> {
+                        element.setId(UUID.randomUUID().toString());
+                        try {
+                            return Pair.of(element.getId(), searchImage(element.getImageUrl()));
+                        } catch (Exception e) {
+                            log.error("Error searching image for element: {}", e.getMessage(), e);
+                            return null;
+                        }
+                    }).subscribeOn(Schedulers.fromExecutor(executorService));
+                    futures.add(mono.toFuture());
+                }
+            }
+        }
+        CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        List<Image> list = new ArrayList<>();
+        CompletableFuture<List<Image>> allImagesFuture = allOf.thenApply(v -> futures.stream()
+                .map(future -> {
+                    try {
+                        mapImage.put(future.get().getFirst(), future.get().getSecond());
+                        return future.get().getSecond();
+                    } catch (Exception e) {
+                        log.error("Error setting image for element: {}", e.getMessage(), e);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
+        allImagesFuture.thenAccept(list::addAll).join();
+        executorService.shutdown();
+        for (Slide slide : project.getSlides()) {
+            for (Element element : slide.getElements()) {
+                if (element.getElementType().equals(ContentType.IMAGE.toString())) {
+                    element.setImageUrl(mapImage.get(element.getId()).getLink());
+                    element.setId(null);
+                }
+            }
+        }
+        imageRepository.saveAll(list);
+        log.info("Image saved successfully");
+    }
+
+    @Transactional
+    private Image searchWithImprovePrompt(String prompt, boolean improvePrompt) throws JsonProcessingException {
+        String newPrompt = prompt;
+        if (improvePrompt) newPrompt = improvePrompt(prompt);
+        log.info("Searching for images with prompt: {}", newPrompt);
+        String finalPrompt = newPrompt;
         String response = WebClient.builder().baseUrl("https://www.googleapis.com")
                 .build().get()
                 .uri(uriBuilder -> uriBuilder
@@ -64,18 +133,26 @@ public class ImageServiceImpl implements ImageService {
                 .getBody();
 
         JSONObject jsonObject = new JSONObject(response);
+        if (!jsonObject.has("items") || jsonObject.getJSONArray("items").isEmpty()) {
+            log.error("Cannot find image with prompt: {}", prompt);
+            return searchWithImprovePrompt(prompt, false);
+        }
         JSONArray jsonArray = jsonObject.getJSONArray("items");
         String link = objectMapper.readTree(jsonArray.getJSONObject(0).toString()).path("link").asText();
         log.info("Image link: {}", link);
-        Image image = new Image(link);
-        imageRepository.save(image);
-        return image;
+        return new Image(link);
     }
 
     public String improvePrompt(String prompt) {
-        return prompt + " high resolution" +
-                " no watermark" +
-                " free license";
+        return prompt +
+                " site:freepik.com" +
+                " OR site:unsplash.com" +
+                " OR site:pexels.com" +
+                " OR site:pixabay.com" +
+                " OR site:istockphoto.com" +
+                " OR site:freeimages.com" +
+                " OR site:stocksnap.io" +
+                " OR site:stockvault.net";
     }
 
     @Override
