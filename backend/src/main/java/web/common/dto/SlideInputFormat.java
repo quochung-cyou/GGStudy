@@ -1,11 +1,15 @@
 package web.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SlideInputFormat {
     @JsonProperty("chapter_name")
     private String slideTopicName = "";
@@ -31,4 +35,16 @@ public class SlideInputFormat {
     private String secondImageTitle = "";
     @JsonProperty("image_2_text")
     private String secondImageText = "";
+    @JsonProperty("image_3")
+    private String thirdImageUrl = "";
+    @JsonProperty("image_3_title")
+    private String thirdImageTitle = "";
+    @JsonProperty("image_3_text")
+    private String thirdImageText = "";
+    @JsonProperty("title_1")
+    private String firstCompareTitle = "Similarities";
+    @JsonProperty("title_2")
+    private String secondCompareTitle = "Differences";
+    @JsonProperty("differences")
+    private List<DifferenceIdeaFormat> differences;
 }

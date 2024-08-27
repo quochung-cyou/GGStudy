@@ -3,5 +3,9 @@ package web.common.shared;
 public enum SlideType {
     TEXT_ONLY,
     ONE_IMAGE_AND_TEXT,
-    TWO_IMAGES_AND_TEXT
+    TWO_IMAGES_AND_TEXT,
+    TWO_IMAGES_AND_TWO_TEXTS,
+    THREE_IMAGES_AND_TEXT,
+    COMPARISON_TWO_IDEAS,
+    COMPARISON_THREE_IDEAS
 }

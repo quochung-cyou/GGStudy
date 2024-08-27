@@ -14,9 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
-import web.common.dto.ProjectDTO;
-import web.common.dto.ProjectInputFormat;
-import web.common.dto.SlideInputFormat;
+import web.common.dto.*;
 import web.common.exception.NotFoundException;
 import web.common.shared.ContentType;
 import web.common.shared.SlideType;
@@ -43,7 +41,9 @@ import static web.common.shared.Constants.*;
 public class ProjectServiceImpl implements ProjectService {
 
     public static final String BASIC_PROMPT_PATH = "classpath:data/prompt.txt";
-
+    public static final String NEW_BASIC_PROMPT_PATH = "classpath:data/new_prompt.txt";
+    public static final String OUTLINE_PROMPT_PATH = "classpath:data/outlineprompt.txt";
+    public static final String CHAT_PROMPT_PATH = "classpath:data/chatprompt.txt";
 
     private final ProjectRepository projectRepository;
     private final TemplateRepository templateRepository;
@@ -89,35 +89,58 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Project createProjectsFromGemini(String topicName, String additionalInfo) throws IOException {
-        String prompt = constructTopicPrompt(topicName, additionalInfo);
+        Instant allStart = Instant.now();
+        String prompt = constructTopicPrompt(topicName, additionalInfo, NEW_BASIC_PROMPT_PATH);
         Instant start = Instant.now();
         String response = geminiClient.getDataFromPrompt(prompt);
         log.info("Response from Gemini: {}", response);
         log.info("Time taken to get response from Gemini: {}", Instant.now().toEpochMilli() - start.toEpochMilli());
         var projectInputFormat = objectMapper.readValue(formatString(response), ProjectInputFormat.class);
-
         Project theProject = new Project();
         theProject.setTitle(topicName);
         extractSlide(projectInputFormat, theProject);
-        setImageUrlElement(theProject);
+        start = Instant.now();
+        imageService.setUrlImageElement(theProject);
+        log.info("Time taken to get image links: {}", Instant.now().toEpochMilli() - start.toEpochMilli());
         projectRepository.save(theProject);
+        log.info("Time taken for the whole prDIocess: {}", Instant.now().toEpochMilli() - allStart.toEpochMilli());
         return theProject;
     }
 
-    private void setImageUrlElement(Project project) throws JsonProcessingException {
-        for (Slide slide : project.getSlides()) {
-            for (Element element : slide.getElements()) {
-                if (element.getElementType().equals(ContentType.IMAGE.toString())) {
-                    Image image = imageService.searchImages(element.getImageUrl());
-                    element.setImageUrl(image.getLink());
-                }
-            }
+    @Override
+    public List<OutlineResponse> createProjectOutlines(String topicName) throws IOException {
+        String prompt = getPromptFromFile(OUTLINE_PROMPT_PATH);
+        prompt = prompt.replace("{{topic_name}}", topicName);
+        String response = geminiClient.getDataFromPrompt(prompt);
+        System.out.println(response);
+        var outlineInputFormat = objectMapper.readValue(formatString(response), OutlineInputFormat.class);
+        return outlineInputFormat.getOutlines();
+    }
+
+    @Override
+    public String getReponsesFromGemini(String topicName, String addInfo) throws IOException {
+        String prompt = constructTopicPrompt(topicName, addInfo, NEW_BASIC_PROMPT_PATH);
+        String response = geminiClient.getDataFromPrompt(prompt);
+        log.info("Response from Gemini: {}", response);
+        return formatString(response);
+    }
+
+    @Override
+    public String getAnswerFromGemini(List<String> history, String question) throws IOException {
+        String prompt = getPromptFromFile(CHAT_PROMPT_PATH);
+        StringBuilder joinOfHistoryList = new StringBuilder();
+        for(String chat : history){
+            joinOfHistoryList.append(chat).append("\n");
         }
+        prompt = prompt.replace("{{history}}", joinOfHistoryList.toString());
+        prompt = prompt.replace("{{question}}", question);
+        log.info(prompt);
+        return geminiClient.getDataFromPrompt(prompt);
     }
 
     @NotNull
-    private String constructTopicPrompt(String topicName, String additionalInfo) throws IOException {
-        String prompt = getPromptFromFile(BASIC_PROMPT_PATH);
+    private String constructTopicPrompt(String topicName, String additionalInfo, String path) throws IOException {
+        String prompt = getPromptFromFile(path);
         prompt = prompt.replace("{{topic_name}}", topicName);
         prompt = prompt.replace("{{additional_info}}", additionalInfo);
         return prompt;
@@ -146,6 +169,18 @@ public class ProjectServiceImpl implements ProjectService {
                     break;
                 case TWO_IMAGES_AND_TEXT:
                     twoImagesAndTextTemplateProcess(theSlide, geminiSlide);
+                    break;
+                case TWO_IMAGES_AND_TWO_TEXTS:
+                    twoImagesAndTwoTextsTemplateProcess(theSlide, geminiSlide);
+                    break;
+                case COMPARISON_TWO_IDEAS:
+                    compareIdeasTemplateProcess(theSlide, geminiSlide, COMPARISON_TWO_IDEAS);
+                    break;
+                case COMPARISON_THREE_IDEAS:
+                    compareIdeasTemplateProcess(theSlide, geminiSlide, COMPARISON_THREE_IDEAS);
+                    break;
+                case THREE_IMAGES_AND_TEXT:
+                    threeImagesAndTextTemplateProcess(theSlide, geminiSlide);
                     break;
                 default:
                     throw new NotFoundException("Slide template not found - " + geminiSlide.getSlideType());
@@ -177,6 +212,7 @@ public class ProjectServiceImpl implements ProjectService {
     private void textOnlyTemplateProcess(Slide theSlide, SlideInputFormat geminiSlide) {
         List<Template> templateList = templateRepository.findByTemplateType(TEXT_ONLY);
         Template onlyTextTemplate = templateList.get(random.nextInt(templateList.size()));
+        log.info(String.valueOf(onlyTextTemplate.getElements()));
         for (Element templateElement : onlyTextTemplate.getElements()) {
             Element newSlideElement = extractTemplateElement(templateElement);
             newSlideElement.setContent(geminiSlide.getSlideTopicName());
@@ -212,7 +248,7 @@ public class ProjectServiceImpl implements ProjectService {
         List<Template> templateList = templateRepository.findByTemplateType(TWO_IMAGES_AND_TEXT);
         Template twoImagesTemplate = templateList.get(random.nextInt(templateList.size()));
         boolean firstImageIsTaken = false;
-        for (int templateElementIndex = 0; templateElementIndex < 3; templateElementIndex++) {
+        for (int templateElementIndex = 0; templateElementIndex < twoImagesTemplate.getElements().size(); templateElementIndex++) {
             Element templateElement = twoImagesTemplate.getElements().get(templateElementIndex);
             Element newSlideElement = extractTemplateElement(templateElement);
             if (templateElement.getElementType().equals(ContentType.TEXT.toString())) {
@@ -232,6 +268,149 @@ public class ProjectServiceImpl implements ProjectService {
             theSlide.getElements().add(newSlideElement);
         }
         theSlide.setTemplate(twoImagesTemplate);
+    }
+
+    private void twoImagesAndTwoTextsTemplateProcess(Slide theSlide, SlideInputFormat geminiSlide) {
+        List<Template> templateList = templateRepository.findByTemplateType(TWO_IMAGES_AND_TWO_TEXTS);
+        Template twoImagestwoTextsTemplate = templateList.get(random.nextInt(templateList.size()));
+        for (int templateElementIndex = 0; templateElementIndex < twoImagestwoTextsTemplate.getElements().size(); templateElementIndex++) {
+            Element templateElement = twoImagestwoTextsTemplate.getElements().get(templateElementIndex);
+            Element newSlideElement = extractTemplateElement(templateElement);
+            String elementType = templateElement.getElementType();
+            if (elementType.equals(ContentType.TEXT1.toString())) {
+                newSlideElement.setTopicName(geminiSlide.getTopicName());
+                newSlideElement.setHeadingTitle(geminiSlide.getFirstImageTitle());
+                newSlideElement.setContent(geminiSlide.getFirstImageText());
+            } else if (elementType.equals(ContentType.TEXT2.toString())) {
+                newSlideElement.setTopicName(geminiSlide.getTopicName());
+                newSlideElement.setHeadingTitle(geminiSlide.getSecondImageTitle());
+                newSlideElement.setContent(geminiSlide.getSecondImageText());
+            } else if (elementType.equals(ContentType.IMAGE1.toString())) {
+                newSlideElement.setHeadingTitle(geminiSlide.getFirstImageTitle());
+                newSlideElement.setContent(geminiSlide.getFirstImageText());
+                newSlideElement.setImageUrl(geminiSlide.getFirstImageUrl());
+            } else if (elementType.equals(ContentType.IMAGE2.toString())) {
+                newSlideElement.setHeadingTitle(geminiSlide.getSecondImageTitle());
+                newSlideElement.setContent(geminiSlide.getSecondImageText());
+                newSlideElement.setImageUrl(geminiSlide.getSecondImageUrl());
+            }
+            newSlideElement.setSlideId(theSlide.getId());
+            theSlide.getElements().add(newSlideElement);
+            theSlide.setTemplate(twoImagestwoTextsTemplate);
+        }
+    }
+
+    private void threeImagesAndTextTemplateProcess(Slide theSlide, SlideInputFormat geminiSlide) {
+        List<Template> templateList = templateRepository.findByTemplateType(THREE_IMAGES_AND_TEXT);
+        Template threeImagesTextTemplate = templateList.get(random.nextInt(templateList.size()));
+        for (int templateElementIndex = 0; templateElementIndex < threeImagesTextTemplate.getElements().size(); templateElementIndex++) {
+            Element templateElement = threeImagesTextTemplate.getElements().get(templateElementIndex);
+            Element newSlideElement = extractTemplateElement(templateElement);
+            String elementType = templateElement.getElementType();
+            if (elementType.equals(ContentType.TEXT.toString())) {
+                newSlideElement.setContent(geminiSlide.getFirstImageText());
+            } else if (elementType.equals(ContentType.IMAGE1.toString())) {
+                newSlideElement.setHeadingTitle(geminiSlide.getFirstImageTitle());
+                newSlideElement.setContent(geminiSlide.getFirstImageText());
+                newSlideElement.setImageUrl(geminiSlide.getFirstImageUrl());
+            } else if (elementType.equals(ContentType.IMAGE2.toString())) {
+                newSlideElement.setHeadingTitle(geminiSlide.getSecondImageTitle());
+                newSlideElement.setContent(geminiSlide.getSecondImageText());
+                newSlideElement.setImageUrl(geminiSlide.getSecondImageUrl());
+            } else if (elementType.equals(ContentType.IMAGE3.toString())) {
+                newSlideElement.setHeadingTitle(geminiSlide.getThirdImageTitle());
+                newSlideElement.setContent(geminiSlide.getThirdImageText());
+                newSlideElement.setImageUrl(geminiSlide.getThirdImageUrl());
+            }
+            newSlideElement.setSlideId(theSlide.getId());
+            theSlide.getElements().add(newSlideElement);
+            theSlide.setTemplate(threeImagesTextTemplate);
+        }
+    }
+
+    private void compareIdeasTemplateProcess(Slide theSlide, SlideInputFormat slideInputFormat, String compareType){
+        List<Template> templateList = templateRepository.findByTemplateType(compareType);
+        Template compareTwoIdeasTemplate = templateList.get(random.nextInt(templateList.size()));
+        for (Element templateElement : compareTwoIdeasTemplate.getElements()) {
+            Element newSlideElement = extractTemplateElement(templateElement);
+            if (templateElement.getElementType().equals(ContentType.HEADING.toString())) {
+                newSlideElement.setContent(slideInputFormat.getHeadingTitle());
+            } else if (templateElement.getElementType().equals(ContentType.TITLE1.toString())){
+                newSlideElement.setContent(slideInputFormat.getFirstCompareTitle());
+            } else if (templateElement.getElementType().equals(ContentType.TITLE2.toString())){
+                newSlideElement.setContent(slideInputFormat.getSecondCompareTitle());
+            }else if (templateElement.getElementType().equals(ContentType.TEXT.toString())) {
+                newSlideElement.setContent(slideInputFormat.getParagraphText());
+            } else if (templateElement.getElementType().equals(ContentType.DIFFERENCE.toString())) {
+                int distance = DISTANCE_BETWEEN_TWO_DIFFERENCE;
+                newSlideElement.setContent(slideInputFormat.getDifferences().get(0).getDifferenceTitle());
+                newSlideElement.setSlideId(theSlide.getId());
+                newSlideElement.setRootElementTemplateId(templateElement.getId());
+                theSlide.getElements().add(newSlideElement);
+                for (int differenceIndex = 1;differenceIndex<slideInputFormat.getDifferences().size();differenceIndex++){
+                    Element newElement = extractTemplateElement(templateElement);
+                    newElement.setContent(slideInputFormat.getDifferences().get(differenceIndex).getDifferenceTitle());
+                    newElement.setPosX(newSlideElement.getPosX() - distance);
+                    newElement.setSlideId(theSlide.getId());
+                    newElement.setRootElementTemplateId(templateElement.getId());
+                    distance += DISTANCE_BETWEEN_TWO_DIFFERENCE;
+                    theSlide.getElements().add(newElement);
+                }
+                continue;
+            } else if (templateElement.getElementType().equals(ContentType.IDEA1.toString())){
+                int distance = DISTANCE_BETWEEN_TWO_DIFFERENCE;
+                newSlideElement.setContent(slideInputFormat.getDifferences().get(0).getFirstIdea());
+                newSlideElement.setSlideId(theSlide.getId());
+                newSlideElement.setRootElementTemplateId(templateElement.getId());
+                theSlide.getElements().add(newSlideElement);
+                for (int differenceIndex = 1;differenceIndex<slideInputFormat.getDifferences().size();differenceIndex++){
+                    Element newElement = extractTemplateElement(templateElement);
+                    newElement.setContent(slideInputFormat.getDifferences().get(differenceIndex).getFirstIdea());
+                    newElement.setPosX(newSlideElement.getPosX() - distance);
+                    newElement.setSlideId(theSlide.getId());
+                    newElement.setRootElementTemplateId(templateElement.getId());
+                    distance += DISTANCE_BETWEEN_TWO_DIFFERENCE;
+                    theSlide.getElements().add(newElement);
+                }
+                continue;
+            } else if (templateElement.getElementType().equals(ContentType.IDEA2.toString())){
+                int distance = DISTANCE_BETWEEN_TWO_DIFFERENCE;
+                newSlideElement.setContent(slideInputFormat.getDifferences().get(0).getSecondIdea());
+                newSlideElement.setSlideId(theSlide.getId());
+                newSlideElement.setRootElementTemplateId(templateElement.getId());
+                theSlide.getElements().add(newSlideElement);
+                for (int differenceIndex = 1;differenceIndex<slideInputFormat.getDifferences().size();differenceIndex++){
+                    Element newElement = extractTemplateElement(templateElement);
+                    newElement.setContent(slideInputFormat.getDifferences().get(differenceIndex).getSecondIdea());
+                    newElement.setPosX(newSlideElement.getPosX() - distance);
+                    newElement.setSlideId(theSlide.getId());
+                    newElement.setRootElementTemplateId(templateElement.getId());
+                    distance += DISTANCE_BETWEEN_TWO_DIFFERENCE;
+                    theSlide.getElements().add(newElement);
+                }
+                continue;
+            } else if (Objects.equals(compareType, COMPARISON_THREE_IDEAS) && templateElement.getElementType().equals(ContentType.IDEA3.toString())){
+                int distance = DISTANCE_BETWEEN_TWO_DIFFERENCE;
+                newSlideElement.setContent(slideInputFormat.getDifferences().get(0).getThirdIdea());
+                newSlideElement.setSlideId(theSlide.getId());
+                newSlideElement.setRootElementTemplateId(templateElement.getId());
+                theSlide.getElements().add(newSlideElement);
+                for (int differenceIndex = 1;differenceIndex<slideInputFormat.getDifferences().size();differenceIndex++){
+                    Element newElement = extractTemplateElement(templateElement);
+                    newElement.setContent(slideInputFormat.getDifferences().get(differenceIndex).getThirdIdea());
+                    newElement.setPosX(newSlideElement.getPosX() - distance);
+                    newElement.setSlideId(theSlide.getId());
+                    newElement.setRootElementTemplateId(templateElement.getId());
+                    distance += DISTANCE_BETWEEN_TWO_DIFFERENCE;
+                    theSlide.getElements().add(newElement);
+                }
+                continue;
+            }
+            newSlideElement.setRootElementTemplateId(templateElement.getId());
+            newSlideElement.setSlideId(theSlide.getId());
+            theSlide.getElements().add(newSlideElement);
+        }
+        theSlide.setTemplate(compareTwoIdeasTemplate);
     }
 
     private Element extractTemplateElement(Element templateElement) {
