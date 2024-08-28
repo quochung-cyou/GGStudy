@@ -64,6 +64,7 @@ jobs:
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
           JASYPT_ENCRYPTOR_PASSWORD: ${{ secrets.JASYPT_ENCRYPTOR_PASSWORD }}
+          APP_PORT: 8080
         run: |
           cd backend
           # Ensure sshpass is installed (adjust according to the runner environment)
@@ -81,13 +82,42 @@ jobs:
           # Add the server to known_hosts to avoid host verification issues
           ssh-keyscan -H ${VPS_IP} >> ~/.ssh/known_hosts
           
-          echo "Stopping old application..."
-          sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no -vvv ${VPS_USER}@${VPS_IP} << EOF
+          sshpass -p "${SSH_PASSWORD}" ssh -t -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_IP} << 'EOF'
           echo "Creating backup of current application..."
           cp ~/app.jar ~/app_backup.jar
-          ps aux | grep 'java -jar' | grep -v grep | awk '{print \$2}' | xargs kill -9 || true
+
+
+          echo "Stopping old application..."
+          pid=$(netstat -tlnp 2>/dev/null | grep ":8081" | awk '{print $NF}' | cut -d'/' -f1)
+          echo "Debug: Extracted PID: $pid"
+
+          if [ -n "$pid" ] && [ "$pid" != "-" ]; then
+              echo "Found process $pid running on port 8081. Attempting to stop it..."
+              kill "$pid"
+              sleep 5
+              if kill -0 "$pid" 2>/dev/null; then
+                  echo "Process did not stop gracefully. Forcing termination..."
+                  kill -9 "$pid"
+              else
+                  echo "Process stopped successfully."
+              fi
+          else
+              echo "No valid process ID found running on port 8081."
+              echo "Checking for any Java processes..."
+              java_pids=$(pgrep java)
+              if [ -n "$java_pids" ]; then
+                  echo "Found Java processes: $java_pids"
+                  echo "Attempting to stop all Java processes..."
+                  kill $java_pids
+                  sleep 5
+                  kill -9 $java_pids 2>/dev/null
+                  echo "Attempted to stop all Java processes."
+              else
+                  echo "No Java processes found."
+              fi
+          fi
+
           EOF
-          
           
           echo "Deploying new application..."
           sshpass -p "${SSH_PASSWORD}" scp -o StrictHostKeyChecking=no target/*.jar ${VPS_USER}@${VPS_IP}:~/app.jar
@@ -109,6 +139,7 @@ jobs:
           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_IP: ${{ secrets.VPS_IP }}
+          APP_PORT: 8080
         run: |
           echo "Waiting for application to start..."
           sleep 30
@@ -134,7 +165,37 @@ jobs:
           if [ "$success" = false ]; then
             echo "Health check failed after $retries attempts. Rolling back to previous version..."
             sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_IP} << EOF
-            ps aux | grep 'java -jar' | grep -v grep | awk '{print \$2}' | xargs kill -9 || true
+
+            echo "Stopping old application..."
+            pid=$(netstat -tlnp 2>/dev/null | grep ":8081" | awk '{print $NF}' | cut -d'/' -f1)
+            echo "Debug: Extracted PID: $pid"
+
+            if [ -n "$pid" ] && [ "$pid" != "-" ]; then
+                echo "Found process $pid running on port 8081. Attempting to stop it..."
+                kill "$pid"
+                sleep 5
+                if kill -0 "$pid" 2>/dev/null; then
+                    echo "Process did not stop gracefully. Forcing termination..."
+                    kill -9 "$pid"
+                else
+                    echo "Process stopped successfully."
+                fi
+            else
+                echo "No valid process ID found running on port 8081."
+                echo "Checking for any Java processes..."
+                java_pids=$(pgrep java)
+                if [ -n "$java_pids" ]; then
+                    echo "Found Java processes: $java_pids"
+                    echo "Attempting to stop all Java processes..."
+                    kill $java_pids
+                    sleep 5
+                    kill -9 $java_pids 2>/dev/null
+                    echo "Attempted to stop all Java processes."
+                else
+                    echo "No Java processes found."
+                fi
+            fi
+            EOF
             mv ~/app_backup.jar ~/app.jar
             nohup java -jar ~/app.jar --spring.profiles.active=deploy --jasypt.encryptor.password=${JASYPT_ENCRYPTOR_PASSWORD} > ~/app.log 2>&1 &
             echo "Rolled back to previous version! Waiting for 5 seconds..."
