@@ -82,7 +82,7 @@ jobs:
           ssh-keyscan -H ${VPS_IP} >> ~/.ssh/known_hosts
           
           echo "Stopping old application..."
-          sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no -vvv ${VPS_USER}@${VPS_IP} << EOF
+          sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no  ${VPS_USER}@${VPS_IP} << EOF
           echo "Creating backup of current application..."
           cp ~/app.jar ~/app_backup.jar
           ps aux | grep 'java -jar' | grep -v grep | awk '{print \$2}' | xargs kill -9 || true
