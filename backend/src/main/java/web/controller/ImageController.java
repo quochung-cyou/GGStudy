@@ -27,7 +27,7 @@ public class ImageController {
 
     @PostMapping()
     public CustomResponse<Image> getImages(@RequestParam String prompt) throws JsonProcessingException {
-        return new CustomResponse<>(imageService.searchImages(prompt));
+        return new CustomResponse<>(imageService.searchImage(prompt));
     }
 
     @GetMapping("/{id}")

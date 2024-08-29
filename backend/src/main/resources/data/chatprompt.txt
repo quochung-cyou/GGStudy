@@ -1,0 +1,7 @@
+Here is your chat history with the user, consider the context of the conversation:
+{{history}}
+
+Here is the user's new question about the topic:
+{{question}}
+
+Give the user a detail and concise answer for that question.

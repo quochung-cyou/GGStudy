@@ -310,13 +310,12 @@ html {
 .hero-image .video-container {
     position: absolute;
     backdrop-filter: blur(2px);
-    border: 5px solid var(--pink-pastel, #C396FE) solid;
+    border: 5px var(--pink-opaque) solid;
     background: rgba(1, 3, 26, 0.47);
     border-radius: 40px;
     width: 65%;
     height: 90%;
     margin-top: 42rem;
-    filter: blur(2px);
 }
 
 .hero-image .video-container video {
