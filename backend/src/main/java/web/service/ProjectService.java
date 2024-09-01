@@ -2,6 +2,7 @@ package web.service;
 
 import org.springframework.data.domain.Page;
 import web.common.dto.ProjectDTO;
+import web.model.Outline;
 import web.model.OutlineResponse;
 import web.model.Project;
 import java.io.IOException;
@@ -12,7 +13,7 @@ public interface ProjectService {
 
     Project findById(String id);
 
-    Project createProjectsFromGemini(String topicName, String additionalInfo) throws IOException;
+    Project createProjectsFromOutlines(List<OutlineResponse> outlines) throws IOException;
 
     List<OutlineResponse> createProjectOutlines(String topicName) throws IOException;
 

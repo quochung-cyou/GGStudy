@@ -49,10 +49,10 @@ public class Project {
 
     @OneToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", referencedColumnName = "id")
-    private List<Slide> slides;
+    private List<Outline> outlines;
 
     public Project() {
-        this.slides = new ArrayList<>();
+        this.outlines = new ArrayList<>();
     }
 }
 

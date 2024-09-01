@@ -19,11 +19,8 @@ import reactor.core.scheduler.Schedulers;
 import web.common.exception.NotFoundException;
 import web.common.shared.ContentType;
 import web.common.utils.PageableUtils;
-import web.model.Element;
-import web.model.Image;
+import web.model.*;
 import web.dao.repository.ImageRepository;
-import web.model.Project;
-import web.model.Slide;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -54,10 +51,10 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     @Transactional
-    public void setUrlImageElement(Project project) {
+    public void setUrlImageElement(Outline outline) {
         List<CompletableFuture<Pair<String, Image>>> futures = new ArrayList<>();
         Map<String, Image> mapImage = new HashMap<>();
-        for (Slide slide : project.getSlides()) {
+        for (Slide slide : outline.getSlides()) {
             for (Element element : slide.getElements()) {
                 if (element.getElementType().equals(ContentType.IMAGE.toString())) {
                     Mono<Pair<String, Image>> mono = Mono.fromCallable(() -> {
@@ -88,7 +85,7 @@ public class ImageServiceImpl implements ImageService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList()));
         allImagesFuture.thenAccept(list::addAll).join();
-        for (Slide slide : project.getSlides()) {
+        for (Slide slide : outline.getSlides()) {
             for (Element element : slide.getElements()) {
                 if (element.getElementType().equals(ContentType.IMAGE.toString())) {
                     element.setImageUrl(mapImage.get(element.getId()).getLink());

@@ -17,5 +17,11 @@
     <changeSet id="004_extra_field_be.sql" author="quochungcyou" dbms="mysql" onValidationFail="HALT" failOnError="true">
         <sqlFile path="db/changelog/004_extra_field_be.sql"/>
     </changeSet>
+    <changeSet id="005_create_outlines_tables.sql" author="PhQuangMinh" dbms="mysql" onValidationFail="HALT" failOnError="true">
+        <sqlFile path="db/changelog/005_create_outlines_tables.sql"/>
+    </changeSet>
+    <changeSet id="006_modify_tables.sql" author="PhQuangMinh" dbms="mysql" onValidationFail="HALT" failOnError="true">
+        <sqlFile path="db/changelog/006_modify_tables.sql"/>
+    </changeSet>
 </databaseChangeLog>
 

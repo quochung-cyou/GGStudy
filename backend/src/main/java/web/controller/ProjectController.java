@@ -8,11 +8,14 @@ import org.springframework.web.bind.annotation.*;
 import web.common.dto.CustomResponse;
 import web.common.dto.ProjectDTO;
 import web.common.utils.SecurityUtils;
+import web.model.Outline;
+import web.model.OutlineResponse;
 import web.model.Project;
 import web.model.UserChatRequest;
 import web.service.ProjectService;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/v1/projects")
@@ -35,10 +38,9 @@ public class ProjectController {
         return new CustomResponse<>(projectService.findById(id));
     }
 
-    @PostMapping
-    public CustomResponse<Project> createProject(@RequestParam String topicName,
-                                 @RequestParam(required = false, defaultValue = "") String additionalInfo) throws IOException {
-        return new CustomResponse<>(projectService.createProjectsFromGemini(topicName, additionalInfo));
+    @PostMapping("")
+    public CustomResponse<Project> createProjectsFromOutlines(@RequestBody List<OutlineResponse> outlines) throws IOException {
+        return new CustomResponse<>(projectService.createProjectsFromOutlines(outlines));
     }
 
     @PostMapping("/answers")
@@ -59,4 +61,8 @@ public class ProjectController {
         projectService.deleteById(id);
     }
 
+    @PostMapping("/outlines")
+    public List<OutlineResponse> createProjectOutlines(@RequestParam String topicName) throws IOException {
+        return projectService.createProjectOutlines(topicName);
+    }
 }

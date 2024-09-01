@@ -23,9 +23,9 @@ public class Slide {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
-    private Project project;
+    private Outline outline;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JsonIgnore
     private Template template;
 
@@ -35,7 +35,7 @@ public class Slide {
     @Column(name = "topic_name", columnDefinition = "TEXT")
     private String topicName;
 
-    @OneToMany(cascade = {CascadeType.ALL})
+    @OneToMany(cascade = {CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH, CascadeType.REMOVE})
     @JoinColumn(name = "slide_id")
     private List<Element> elements;
 

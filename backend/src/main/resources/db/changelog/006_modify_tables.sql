@@ -1,0 +1,12 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+ALTER TABLE slides DROP FOREIGN KEY slides_ibfk_1;
+
+ALTER TABLE slides DROP COLUMN project_id;
+
+ALTER TABLE slides
+ADD COLUMN outline_id VARCHAR(36),
+ADD CONSTRAINT fk_outline
+FOREIGN KEY (outline_id) REFERENCES outlines(id);
+
+SET FOREIGN_KEY_CHECKS=1;
