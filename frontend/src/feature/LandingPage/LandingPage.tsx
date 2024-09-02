@@ -12,7 +12,16 @@ import usericon from "../../assets/users 02.svg";
 import charticon from "../../assets/bar chart.svg";
 import studenticon from "../../assets/student.svg";
 import shufflingicon from "../../assets/shuffle.svg";
+import interactive from "../../assets/interactive.png";
+import chatting from "../../assets/chatting.png";
+import chatnotif from "../../assets/chatnotif.png";
+import people01 from "../../assets/people01.png";
+import plugin from "../../assets/plugin.png";
+
+import overlay from "../../assets/overlay.png";
 import {Link} from 'react-router-dom';
+import './LandingPage.css';
+import Footer from "../../Footer.tsx";
 
 export const LandingPage = () => {
 
@@ -40,6 +49,21 @@ export const LandingPage = () => {
         duration: 0.5,
     };
 
+    const glassmorphimSectionVariants = {
+        initial: {opacity: 0, y: 50, transition: {duration: 1}},
+        animate: {opacity: 1, y: 0, transition: {duration: 1}}
+    };
+
+    const glassmorphimImageVariants = {
+        initial: {opacity: 0, scale: 0.8, transition: {duration: 1}},
+        animate: {opacity: 1, scale: 1, transition: {duration: 1}}
+    };
+
+    const glassmorphimContainerVariants = {
+        initial: {opacity: 0, x: -50, transition: {duration: 1}},
+        animate: {opacity: 1, x: 0, transition: {duration: 1}}
+    };
+
     return (
         <motion.div
             initial="initial"
@@ -47,19 +71,22 @@ export const LandingPage = () => {
             exit="out"
             variants={pageVariants}
             transition={pageTransition}
+            id="landing-page"
         >
             <div className="main-container">
                 <AppBar/>
                 <div className="hero-section">
-                    <motion.div className="hero-text" initial={{y: 50, opacity: 0}} animate={{y: 0, opacity: 1}}
+                    <motion.div className="hero-text" initial={{y: 250, opacity: 0}} animate={{y: 0, opacity: 1}}
                                 transition={{duration: 1}}>
                         <h1 className="hero-title">Revolutionize Learning with AI-Driven Slides</h1>
                         <p className="hero-description">Learn Faster, Smarter, and More Efficiently with Personalized AI
                             Courses</p>
                     </motion.div>
-                    <motion.div className="hero-button-section" initial={{y: 50, opacity: 0}}
+                    <motion.div className="hero-button-section"
+                                initial={{y: 50, opacity: 0}}
                                 animate={{y: 0, opacity: 1}}
-                                transition={{duration: 1}}>
+                                transition={{duration: 1}}
+                                >
                         <button className="hero-button-generate">
                             <svg className="icon" viewBox="0 0 24 26">
                                 <path
@@ -77,17 +104,24 @@ export const LandingPage = () => {
                         <a href="#" className="hero-text-learn">Learn More</a>
                     </motion.div>
                 </div>
-                <motion.div className="hero-image" initial={{filter: 'grayscale(100%)', opacity: 0}}
-                            animate={{filter: 'grayscale(0%)', opacity: 1}} transition={{duration: 2}}>
+                <motion.div className="hero-image"
+                            initial={{filter: 'grayscale(100%)', opacity: 0}}
+                            animate={{filter: 'grayscale(0%)', opacity: 1}}
+                            transition={{duration: 2}}>
                     <img src={universe} alt="Universe" className="universe-image"/>
-                    <div className="video-container">
+                    <div className="video-container" id="demo">
                         <video autoPlay muted loop className="video">
                             <source src={video} type="video/mp4"/>
                         </video>
                     </div>
                 </motion.div>
-                <motion.div className="feature-section" style={{marginTop: '30rem'}} initial={{x: 150, opacity: 0}}
-                            whileInView={{x: 0, opacity: 1}} transition={{duration: 1}}>
+                <motion.div className="feature-section"
+                            style={{marginTop: '30rem'}}
+                            initial={{x: 150, opacity: 0}}
+                            whileInView={{x: 0, opacity: 1}}
+                            transition={{duration: 1}}
+                            viewport={{once: true}}
+                            id="feature">
                     <div className="feature-card">
                         <img src={speedtesticon} alt="Speed Test Icon" className="speed-test-icon"/>
                         <h2 className="feature-title">Need to master a new skill quickly</h2>
@@ -114,8 +148,11 @@ export const LandingPage = () => {
                             their own pace, maximizing productivity.</p>
                     </div>
                 </motion.div>
-                <motion.div className="feature-section" initial={{x: 150, opacity: 0}} whileInView={{x: 0, opacity: 1}}
-                            transition={{duration: 1}}>
+                <motion.div className="feature-section"
+                            initial={{x: 150, opacity: 0}}
+                            whileInView={{x: 0, opacity: 1}}
+                            transition={{duration: 1}}
+                            viewport={{once: true}}>
                     <div className="feature-card">
                         <img src={charticon} alt="Chart Icon" className="chart-icon"/>
                         <h2 className="feature-title">Continuous Professional Development</h2>
@@ -142,7 +179,100 @@ export const LandingPage = () => {
                             ensure better understanding and higher grades..</p>
                     </div>
                 </motion.div>
+                <motion.div
+                    className="more-information"
+                    initial={{opacity: 0, y: 50}}
+                    whileInView={{opacity: 1, y: 0}}
+                    transition={{duration: 1}}
+                    viewport={{once: true}}
+                >
+                    <button className="glow-button">
+                        <span>A.I Assistant</span>
+                    </button>
+                    <h2 className="more-information-title">Too Much to Learn, Too Little Time?</h2>
+                    <p className="more-information-description">In today’s fast-paced world, learning new skills and
+                        staying updated is more challenging than ever. Traditional methods like reading books are
+                        time-consuming and often inefficient. What if there was a faster, more effective way to
+                        learn?</p>
+                </motion.div>
+                <motion.div
+                    className="glassmorphim-section"
+                    initial="initial"
+                    whileInView="animate"
+                    variants={glassmorphimSectionVariants}
+                    viewport={{once: true}}
+                    id="more-information"
+                >
+                    <motion.div
+                        className="glassmorphim-image"
+                        initial="initial"
+                        whileInView="animate"
+                        variants={glassmorphimImageVariants}
+                        viewport={{once: true}}
+                    >
+                        <img src={overlay} alt="Universe" className="universe-image"/>
+                    </motion.div>
+                    <motion.div
+                        className="glassmorphim-container"
+                        initial="initial"
+                        whileInView="animate"
+                        variants={glassmorphimContainerVariants}
+                        viewport={{once: true}}
+                    >
+                        <div className="glassmorphim-text">
+                            <h2 className="glassmorphim-title">What can you do with GGStudy?</h2>
+                            <ul className="glassmorphim-list">
+                                <li className="glassmorphim-field">Engage with dynamic slides featuring voice overs and
+                                    real-world teaching
+                                </li>
+                                <li className="glassmorphim-field">Receive tailored content based on your learning goals
+                                    and progress
+                                </li>
+                                <li className="glassmorphim-field">Grasp concepts quickly without the need for dense
+                                    textbooks
+                                </li>
+                            </ul>
+                        </div>
+                    </motion.div>
+                </motion.div>
+                <div className="feature-section-2">
+                    <div className={"feature-card-2"}>
+                        <img src={interactive} alt="Interactive Icon" className="interactive-icon"/>
+                        <h2 className="feature-title">Interactive Slides</h2>
+                        <p className="feature-description">Dynamic slides with voiceovers and highlights for focused
+                            learning.</p>
+                    </div>
+                    <div className={"feature-card-2"}>
+                        <img src={people01} alt="People Icon" className="people-icon"/>
+                        <h2 className="feature-title">Personalized Courses</h2>
+                        <p className="feature-description">AI customizes your learning path based on your goals and
+                            progress.</p>
+                    </div>
+                    <div className={"feature-card-2"}>
+                        <img src={chatting} alt="Chatting Icon" className="chatting-icon"/>
+                        <h2 className="feature-title">Agent Chatbot</h2>
+                        <p className="feature-description">Get instant answers and guidance from our intelligent
+                            chatbot.</p>
+                    </div>
+                </div>
+                <div className="feature-section-2">
+                    <div className={"feature-card-2"} style={{width: '30%'}}>
+                        <img src={chatnotif} alt="Chatting Icon" className="chatting-icon"/>
+                        <h2 className="feature-title">Real-Time Feedback</h2>
+                        <p className="feature-description">Receive immediate feedback to reinforce your learning.</p>
+                    </div>
+                    <div className={"feature-card-2"} style={{width: '30%'}}>
+                        <img src={plugin} alt="People Icon" className="people-icon"/>
+                        <h2 className="feature-title">Gamified Learning</h2>
+                        <p className="feature-description">Unlock achievements and track progress with our gamified
+                            system.</p>
+                    </div>
+                </div>
+                <Footer/>
             </div>
+
+
+
         </motion.div>
 
 
