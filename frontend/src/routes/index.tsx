@@ -11,7 +11,10 @@ export const AppRoutes = () => {
 
     return (
         <AnimatePresence mode={"wait"}>
+
             <>{element}</>
+
+
         </AnimatePresence>
     )
 };

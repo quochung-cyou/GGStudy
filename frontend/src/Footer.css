@@ -1,0 +1,60 @@
+/* Footer.css */
+.footer {
+    border: 1px solid var(--dark-purple, #6366F1);
+    background: linear-gradient(180deg, rgba(151, 71, 255, 0.10) -32.65%, rgba(255, 180, 255, 0.00) 64.33%, rgba(5, 4, 5, 0.00) 77.69%, rgba(5, 4, 5, 0.30) 161.32%);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 2rem;
+    margin-top: 2rem;
+    text-align: center;
+    color: #fff;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+}
+
+.footer-logo {
+    width: 12rem;
+    height: 3rem;
+    object-fit: contain;
+}
+
+
+.footer-nav {
+    display: flex;
+    gap: 3rem;
+    margin-bottom: 1rem;
+
+}
+
+.footer-nav-item {
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.3s;
+    font-family: Inter, sans-serif;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 32px;
+}
+
+.footer-nav-item:hover {
+    color: #fffa;
+}
+
+.footer-copyright {
+    font-size: 0.9rem;
+    color: #ccc;
+}
+
+.footer-seperator {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(108deg, rgba(195, 150, 254, 0.50) -4.04%, rgba(99, 102, 241, 0.50) 104.84%);
+    margin: 2rem 0;
+}

@@ -11,7 +11,7 @@ function AppBar() {
     const handleLogin = async () => {
         try {
             await loginWithRedirect();
-            const token = getAccessToken();
+            getAccessToken();
         } catch (e) {
             console.error(e);
         }
@@ -40,10 +40,10 @@ function AppBar() {
                 <img src={logo} alt="Logo" className="logo-img"/>
             </div>
             <div className="navbar-menu">
-                <a href="#" className="navbar-menu-item">Products</a>
-                <a href="#" className="navbar-menu-item">Pricing</a>
-                <a href="#" className="navbar-menu-item">Organization</a>
-                <a href="#" className="navbar-menu-item">Blog</a>
+                <a href="#" className="navbar-menu-item">Home</a>
+                <a href="#demo" className="navbar-menu-item">Demo</a>
+                <a href="#feature" className="navbar-menu-item">Feature</a>
+                <a href="#more-information" className="navbar-menu-item">More Information</a>
             </div>
             <button className="gradient-button" onClick={handleLogin}>
                 <div className="spinner-container">
