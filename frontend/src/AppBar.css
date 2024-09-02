@@ -1,3 +1,7 @@
+html {
+    scroll-behavior: smooth;
+}
+
 .navbar {
     margin-top: 2rem;
     background-color: var(--dark-purple);
@@ -24,17 +28,7 @@
     border-radius: 40px;
     backdrop-filter: blur(2px);
     margin-right: 2rem;
-    background: radial-gradient(
-            50% 20% at center 100%,
-            var(--pink-opaque),
-            transparent
-    ),
-    radial-gradient(
-            50% 10% at center 100%,
-            var(--pink-opaque),
-            transparent
-    ),
-    var(--dark-purple);
+    background: var(--pink-to-dark, linear-gradient(180deg, rgba(151, 71, 255, 0.10) 0%, rgba(255, 180, 255, 0.00) 50%, rgba(5, 4, 5, 0.00) 56.89%, rgba(5, 4, 5, 0.30) 100%));
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
     border: 1px solid var(--purple);
 }
@@ -62,8 +56,8 @@
     font-size: 0.8rem;
     padding: 1em 2em;
     border-radius: 9999px;
-    background: var(--pink-opaque);
-    border: 0;
+    background: var(--pink-to-dark, linear-gradient(180deg, rgba(151, 71, 255, 0.10) 0%, rgba(255, 180, 255, 0.00) 50%, rgba(5, 4, 5, 0.00) 56.89%, rgba(5, 4, 5, 0.30) 100%));
+    border: 1px solid var(--purple);
     position: relative;
     overflow: hidden;
     margin-right: 1rem;
@@ -85,17 +79,7 @@
     border-radius: 9999px;
     inset: 0.125rem;
     position: absolute;
-    background: radial-gradient(
-            50% 50% at center 100%,
-            var(--pink-opaque),
-            transparent
-    ),
-    radial-gradient(
-            100% 100% at center 120%,
-            var(--pink-opaque),
-            transparent
-    ),
-    var(--dark-purple);
+    background: var(--pink-to-dark, linear-gradient(180deg, rgba(151, 71, 255, 0.10) 0%, rgba(255, 180, 255, 0.00) 50%, rgba(5, 4, 5, 0.00) 56.89%, rgba(5, 4, 5, 0.30) 100%));
 }
 
 .gradient-button .button-text {
