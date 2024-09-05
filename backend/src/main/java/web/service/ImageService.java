@@ -5,8 +5,6 @@ import org.springframework.data.domain.Page;
 import web.model.Image;
 import web.model.Project;
 
-import java.util.Map;
-
 public interface ImageService {
     Image searchImage(String prompt) throws JsonProcessingException;
     void setUrlImageElement(Project project);
