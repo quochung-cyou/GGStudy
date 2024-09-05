@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import web.common.dto.OutlineInputFormat;
 import web.common.dto.ProjectDTO;
 import web.common.dto.ProjectInputFormat;
@@ -33,10 +35,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static web.common.shared.Constants.*;
@@ -55,6 +57,8 @@ public class ProjectServiceImpl implements ProjectService {
     private final FieldStyleRepository fieldStyleRepository;
 
     private final ProjectMapper projectMapper;
+    private final int scores = Runtime.getRuntime().availableProcessors();
+    public final ExecutorService executorService = Executors.newFixedThreadPool(scores*2);
 
     private final ObjectMapper objectMapper;
     private final ResourceLoader loader;
@@ -89,25 +93,51 @@ public class ProjectServiceImpl implements ProjectService {
                 }
             }
         }
+        log.info("Getting project successfully");
         return projectGet;
     }
 
+
     @Override
-    public Project createProjectsFromGemini(String topicName, String additionalInfo) throws IOException {
+    public Project createProjectsFromOutlines(List<Outline> outlines){
         Instant allStart = Instant.now();
-        String prompt = constructTopicPrompt(topicName, additionalInfo);
-        Instant start = Instant.now();
-        String response = geminiClient.getDataFromPrompt(prompt);
-        log.info("Response from Gemini: {}", response);
-        log.info("Time taken to get response from Gemini: {}", Instant.now().toEpochMilli() - start.toEpochMilli());
-        var projectInputFormat = objectMapper.readValue(formatString(response), ProjectInputFormat.class);
         Project theProject = new Project();
-        theProject.setTitle(topicName);
-        extractSlide(projectInputFormat, theProject);
+        List<CompletableFuture<List<Slide>>> futures = new ArrayList<>();
+        Instant start = Instant.now();
+        for (Outline outline : outlines) {
+            Mono<List<Slide>> mono = Mono.fromCallable(() -> {
+                try {
+                    return createProjectsFromGemini(outline.getTitle(), outline.getDescription(), theProject);
+                } catch (Exception e) {
+                    log.error("Error creating slides from outline: {}", e.getMessage(), e);
+                    return new ArrayList<Slide>();
+                }
+            }).subscribeOn(Schedulers.fromExecutor(executorService));
+            futures.add(mono.toFuture());
+        }
+        CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        List<List<Slide>> listSlides = new ArrayList<>();
+        CompletableFuture<List<List<Slide>>> allImagesFuture = allOf.thenApply(v -> futures.stream()
+                .map(future -> {
+                    try {
+                        return future.get();
+                    } catch (Exception e) {
+                        log.error("Error creating slides from outline: {}", e.getMessage(), e);
+                        return new ArrayList<Slide>();
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
+        allImagesFuture.thenAccept(listSlides::addAll).join();
+        log.info("Time taken to get slides from Gemini: {}", Instant.now().toEpochMilli() - start.toEpochMilli());
+        for (List<Slide> slides : listSlides) {
+            theProject.getSlides().addAll(slides);
+        }
         start = Instant.now();
         imageService.setUrlImageElement(theProject);
         log.info("Time taken to get image links: {}", Instant.now().toEpochMilli() - start.toEpochMilli());
         projectRepository.save(theProject);
+        log.info("project saved successfully");
         log.info("Time taken for the whole process: {}", Instant.now().toEpochMilli() - allStart.toEpochMilli());
         return theProject;
     }
@@ -117,9 +147,17 @@ public class ProjectServiceImpl implements ProjectService {
         String prompt = getPromptFromFile(OUTLINE_PROMPT_PATH);
         prompt = prompt.replace("{{topic_name}}", topicName);
         String response = geminiClient.getDataFromPrompt(prompt);
-        System.out.println(response);
+        log.info(response);
         var outlineInputFormat = objectMapper.readValue(formatString(response), OutlineInputFormat.class);
         return outlineInputFormat.getOutlines();
+    }
+
+    public List<Slide> createProjectsFromGemini(String topicName, String additionalInfo, Project theProject) throws IOException {
+        String prompt = constructTopicPrompt(topicName, additionalInfo);
+        String response = geminiClient.getDataFromPrompt(prompt);
+        log.info("Response from Gemini: {}", response);
+        var projectInputFormat = objectMapper.readValue(formatString(response), ProjectInputFormat.class);
+        return extractSlide(projectInputFormat, theProject);
     }
 
     @Override
@@ -151,7 +189,8 @@ public class ProjectServiceImpl implements ProjectService {
         return new String(buffer, StandardCharsets.UTF_8);
     }
 
-    private void extractSlide(ProjectInputFormat projectInputFormat, Project theProject) {
+    private List<Slide> extractSlide(ProjectInputFormat projectInputFormat, Project theProject) {
+        List<Slide> listSlides = new ArrayList<>();
         for (SlideInputFormat geminiSlide : projectInputFormat.getSlides()) {
             Slide theSlide = new Slide();
             theSlide.setTopicName(geminiSlide.getTopicName());
@@ -174,8 +213,9 @@ public class ProjectServiceImpl implements ProjectService {
                     throw new NotFoundException("Slide template not found - " + geminiSlide.getSlideType());
             }
             theSlide.setProject(theProject);
-            theProject.getSlides().add(theSlide);
+            listSlides.add(theSlide);
         }
+        return listSlides;
     }
 
     private String formatString(String jsonString) throws JsonProcessingException {
@@ -183,7 +223,6 @@ public class ProjectServiceImpl implements ProjectService {
         JsonNode text = rootNode.path("candidates").get(0).path("content").path("parts").get(0);
         return text.path("text").asText();
     }
-
 
     @Override
     public Project save(Project theProject) {
@@ -292,6 +331,7 @@ public class ProjectServiceImpl implements ProjectService {
         BeanUtils.copyProperties(templateElement, newElement, "id", "slideId", "templateId");
         return newElement;
     }
+
 }
 
 
