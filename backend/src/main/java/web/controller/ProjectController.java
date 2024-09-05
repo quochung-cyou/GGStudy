@@ -51,7 +51,7 @@ public class ProjectController {
     }
 
     @PostMapping("/outlines")
-    private CustomResponse<List<OutlineResponse>> createProjectOutlines(String topicName) throws IOException {
+    private CustomResponse<List<OutlineResponse>> createProjectOutlines(@RequestParam String topicName) throws IOException {
         return new CustomResponse<>(projectService.createProjectOutlines(topicName));
     }
 

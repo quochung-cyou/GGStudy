@@ -93,6 +93,7 @@ public class ProjectServiceImpl implements ProjectService {
                 }
             }
         }
+        log.info("Getting project successfully");
         return projectGet;
     }
 
@@ -135,7 +136,9 @@ public class ProjectServiceImpl implements ProjectService {
         start = Instant.now();
         imageService.setUrlImageElement(theProject);
         log.info("Time taken to get image links: {}", Instant.now().toEpochMilli() - start.toEpochMilli());
+        theProject.setTitle(theProject.getSlides().get(0).getHeadingTitle());
         projectRepository.save(theProject);
+        log.info(String.valueOf(theProject.getSlides().size()));
         log.info("project saved successfully");
         log.info("Time taken for the whole process: {}", Instant.now().toEpochMilli() - allStart.toEpochMilli());
         return theProject;
