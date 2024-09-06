@@ -18,7 +18,6 @@ Response using this JSON schema:
 ```
 "outlines:" [
 {
-    number: The number such as 01, 02, 03... will be used to mark the order of each chapter content.
     title: The title here will represent the field “chapter_name” of each chapter in the presentation.
     description: The description includes all the valuable information relevant to the title generated. 
     
