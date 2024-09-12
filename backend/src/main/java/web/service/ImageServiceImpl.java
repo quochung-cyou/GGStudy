@@ -19,11 +19,8 @@ import reactor.core.scheduler.Schedulers;
 import web.common.exception.NotFoundException;
 import web.common.shared.ContentType;
 import web.common.utils.PageableUtils;
-import web.model.Element;
-import web.model.Image;
+import web.model.*;
 import web.dao.repository.ImageRepository;
-import web.model.Project;
-import web.model.Slide;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;

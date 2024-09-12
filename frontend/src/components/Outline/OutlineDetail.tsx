@@ -1,4 +1,5 @@
 import React from 'react'
+import './outlinedetail.css'
 import { EditIcon } from '../../assets'
 interface OutlineDetailProps extends React.HTMLAttributes<HTMLDivElement> {
     outline_id: string
@@ -36,10 +37,10 @@ export const OutlineDetail = ({ index, outline_id, title, des, ...rest }: Outlin
     }
 
     return (
-        <div className='w-full flex items-center border-0 border-l-[4px] border-l-[#1A112E] my-3 px-5 p-1'>
+        <div className='flex items-center my-3 px-5 p-1 outline-detail '>
             <div className='text-[48px] mr-3 font-[600]'>{index}</div>
             <div className='w-full flex justify-between'>
-                <div className='flex flex-col'>
+                <div className='flex flex-col w-full'>
                     <input className='text-xl bg-transparent border-transparent border-[2px]' defaultValue={title} disabled />
                     <input className='text-sm text-[#818181] bg-transparent border-transparent border-[2px]' defaultValue={des} disabled />
                 </div>
