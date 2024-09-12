@@ -58,6 +58,8 @@ Before submitting the JSON file, perform a thorough review to ensure all chapter
 Now, here is the main request:
 The topic is about {{topic_name}}. Here is some additional information about the topic: {{additional_info}}
 
+IMPORTANT: ONLY RETURN 1 SLIDE IN CHAPTERS ARRAY. PRIOTIZE THE SLIDE WITH 1 IMAGE, THEN 2 IMAGES, THEN TEXT ONLY
+
 Example response format:
 {
    "chapters": [

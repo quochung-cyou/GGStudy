@@ -36,7 +36,7 @@ public class Slide {
     @Column(name = "topic_name", columnDefinition = "TEXT")
     private String topicName;
 
-    @OneToMany(cascade = {CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH, CascadeType.REMOVE})
+    @OneToMany(cascade = {CascadeType.ALL})
     @JoinColumn(name = "slide_id")
     private List<Element> elements;
 

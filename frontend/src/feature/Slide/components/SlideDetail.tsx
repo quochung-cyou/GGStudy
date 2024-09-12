@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import {PreSlideMini} from '../../../components/slides/PreSlideMini';
 import {mockSlideDetailGet} from '../../../config/mockdata';
-import {useParams} from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 import {Logo} from '../../../assets';
 import {getSlideById} from '../api/getSlides';
 import {SideSlideBar} from '../../../components/sideBar/SideSlideBar';
@@ -12,6 +12,7 @@ export const SlideDetail = () => {
     const [data, setData] = useState(mockSlideDetailGet);
     const [currentSlide, setCurrentSlide] = useState(data.slides[0])
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
+    const navigate = useNavigate();
     const changeSlide = (slide_id: string) => {
         const nextSlide = data.slides.find((item) => item.id == slide_id)
         if (nextSlide) {
@@ -35,6 +36,10 @@ export const SlideDetail = () => {
         subsets={['cyrillic-ext', 'greek']}
     />
 
+    const handleLogoClick = () => {
+        navigate('/slides/home');
+    };
+
     useEffect(() => {
         const fetchSlide = async () => {
             const slideget = await getSlideById(id);
@@ -47,8 +52,8 @@ export const SlideDetail = () => {
         <div className='h-screen relative'>
             {/* ĐÂY LÀ THANH MENU BÊN TRÊN */}
             <div className='bg-[#01031A] flex justify-between h-[10vh] items-center px-10'>
-                <img src={Logo} alt='logo'/>
-                <div>{currentSlide.headingTitle}</div>
+                <img src={Logo} alt='logo' onClick={handleLogoClick}/>
+                <div className={'title-slide'}>{currentSlide.headingTitle}</div>
                 <button
                     className='bg-transparent rounded-full border-[1px] border-white h-[80%] p-1 px-3 text-white'>SLIDE
                     SHOW
