@@ -15,7 +15,7 @@
     --linear-gradient-normal: linear-gradient(45deg, #453a83, #7c1a37);
     --linear-gradient-alternate: linear-gradient(-45deg, #453a83, #7c1a37);
     /* Styles du texte */
-    --font-base: "Nunito", sans-serif;
+    --font-base: "Inter", sans-serif;
     --font-size-base: .9rem;
     --letter-spacing-smooth: 0.3px;
     --line-height-smooth: 1.2;
@@ -26,6 +26,7 @@
     /* Arrondis */
     --border-radius-sm: 0.75rem;
     --border-radius-xl: 10rem;
+    --linear-gradient: linear-gradient(90deg, #DC9CFA 0%, #6366F1 100%);
 }
 
 * {
