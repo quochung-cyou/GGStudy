@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class SlideInputFormat {
@@ -31,4 +33,6 @@ public class SlideInputFormat {
     private String secondImageTitle = "";
     @JsonProperty("image_2_text")
     private String secondImageText = "";
+    @JsonProperty("effects")
+    private List<AnimationInputFormat> animations;
 }

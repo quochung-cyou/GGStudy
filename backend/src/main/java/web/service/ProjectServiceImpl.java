@@ -16,12 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import web.common.dto.OutlineInputFormat;
-import web.common.dto.ProjectDTO;
-import web.common.dto.ProjectInputFormat;
-import web.common.dto.SlideInputFormat;
+import web.common.dto.*;
 import web.common.exception.NotFoundException;
 import web.common.shared.ContentType;
+import web.common.shared.EffectType;
 import web.common.shared.SlideType;
 import web.common.utils.PageableUtils;
 import web.dao.repository.FieldStyleRepository;
@@ -98,9 +96,10 @@ public class ProjectServiceImpl implements ProjectService {
 
 
     @Override
-    public Project createProjectsFromOutlines(List<Outline> outlines){
+    public Project createProjectsFromOutlines(String topicName, List<Outline> outlines){
         Instant allStart = Instant.now();
         Project theProject = new Project();
+        theProject.setTitle(topicName);
         List<CompletableFuture<List<Slide>>> futures = new ArrayList<>();
         Instant start = Instant.now();
         for (Outline outline : outlines) {
@@ -169,7 +168,19 @@ public class ProjectServiceImpl implements ProjectService {
         prompt = prompt.replace("{{history}}", joinOfHistoryList.toString());
         prompt = prompt.replace("{{question}}", question);
         log.info(prompt);
-        return geminiClient.getDataFromPrompt(prompt);
+        try {
+            JsonNode jsonNode = objectMapper.readTree(geminiClient.getDataFromPrompt(prompt));
+            return jsonNode
+                    .get("candidates")
+                    .get(0)
+                    .get("content")
+                    .get("parts")
+                    .get(0)
+                    .get("text")
+                    .asText();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse response body", e);
+        }
     }
 
     @NotNull
@@ -243,8 +254,8 @@ public class ProjectServiceImpl implements ProjectService {
             newSlideElement.setContent(geminiSlide.getSlideTopicName());
             newSlideElement.setSlideId(theSlide.getId());
             newSlideElement.setRootElementTemplateId(templateElement.getId());
-
             theSlide.getElements().add(newSlideElement);
+            extractAnimationEffect(theSlide, geminiSlide, templateElement);
         }
         theSlide.setHeadingTitle(geminiSlide.getSlideTopicName());
         theSlide.setTemplate(onlyTextTemplate);
@@ -255,13 +266,15 @@ public class ProjectServiceImpl implements ProjectService {
         Template oneImageTemplate = templateList.get(random.nextInt(templateList.size()));
         for (Element templateElement : oneImageTemplate.getElements()) {
             Element newSlideElement = extractTemplateElement(templateElement);
-            if (templateElement.getElementType().equals(ContentType.TEXT.toString())) {
+            String elementType = templateElement.getElementType();
+            if (elementType.equals(ContentType.TEXT.toString())) {
                 newSlideElement.setContent(geminiSlide.getParagraphText());
-            } else if (templateElement.getElementType().equals(ContentType.IMAGE.toString())) {
+            } else if (elementType.equals(ContentType.IMAGE.toString())) {
                 newSlideElement.setImageUrl(geminiSlide.getSingleImageUrl());
-            } else if (templateElement.getElementType().equals(ContentType.HEADING.toString())) {
+            } else if (elementType.equals(ContentType.HEADING.toString())) {
                 newSlideElement.setContent(geminiSlide.getHeadingTitle());
             }
+            extractAnimationEffect(theSlide, geminiSlide, templateElement);
             newSlideElement.setRootElementTemplateId(templateElement.getId());
             newSlideElement.setSlideId(theSlide.getId());
             theSlide.getElements().add(newSlideElement);
@@ -276,18 +289,20 @@ public class ProjectServiceImpl implements ProjectService {
         for (int templateElementIndex = 0; templateElementIndex < twoImagesTemplate.getElements().size(); templateElementIndex++) {
             Element templateElement = twoImagesTemplate.getElements().get(templateElementIndex);
             Element newSlideElement = extractTemplateElement(templateElement);
-            if (templateElement.getElementType().equals(ContentType.TEXT.toString())) {
+            String elementType = templateElement.getElementType();
+            if (elementType.equals(ContentType.TEXT.toString())) {
                 newSlideElement.setContent(geminiSlide.getParagraphText());
-            } else if (templateElement.getElementType().equals(ContentType.IMAGE.toString())) {
+            } else if (elementType.equals(ContentType.IMAGE.toString())) {
                 if (!firstImageIsTaken) {
                     newSlideElement.setImageUrl(geminiSlide.getFirstImageUrl());
                     firstImageIsTaken = true;
                 } else {
                     newSlideElement.setImageUrl(geminiSlide.getSecondImageUrl());
                 }
-            } else if (templateElement.getElementType().equals(ContentType.HEADING.toString())) {
+            } else if (elementType.equals(ContentType.HEADING.toString())) {
                 newSlideElement.setContent(geminiSlide.getHeadingTitle());
             }
+            extractAnimationEffect(theSlide, geminiSlide, templateElement);
             newSlideElement.setRootElementTemplateId(templateElement.getId());
             newSlideElement.setSlideId(theSlide.getId());
             theSlide.getElements().add(newSlideElement);
@@ -319,6 +334,7 @@ public class ProjectServiceImpl implements ProjectService {
                 newSlideElement.setContent(geminiSlide.getSecondImageText());
                 newSlideElement.setImageUrl(geminiSlide.getSecondImageUrl());
             }
+            extractAnimationEffect(theSlide, geminiSlide, templateElement);
             newSlideElement.setSlideId(theSlide.getId());
             theSlide.getElements().add(newSlideElement);
             theSlide.setTemplate(twoImagestwoTextsTemplate);
@@ -329,6 +345,30 @@ public class ProjectServiceImpl implements ProjectService {
         Element newElement = new Element();
         BeanUtils.copyProperties(templateElement, newElement, "id", "slideId", "templateId");
         return newElement;
+    }
+
+    private void extractAnimationEffect(Slide theSlide, SlideInputFormat geminiSlide, Element templateElement) {
+        if (geminiSlide.getAnimations() != null) {
+            Element newAnimationElement = new Element();
+            List<AnimationInputFormat> animationInputFormats = geminiSlide.getAnimations();
+            for(AnimationInputFormat animation : animationInputFormats) {
+                if (animation.getElementId().equals(templateElement.getElementType())){
+                    BeanUtils.copyProperties(templateElement, newAnimationElement, "id", "elementType", "appearOrder", "duration");
+                    newAnimationElement.setElementType(animation.getElementType());
+                    newAnimationElement.setAppearOrder(animation.getAppearOrder());
+                    newAnimationElement.setDuration(animation.getDuration());
+                    if (animation.getElementType().equals(EffectType.BOLD.toString())) {
+                        newAnimationElement.setElementType(EffectType.BOLD.toString());
+                    } else if (animation.getElementType().equals(EffectType.CIRCLE.toString())) {
+                        newAnimationElement.setElementType(EffectType.CIRCLE.toString());
+                    }
+                    newAnimationElement.setSlideId(theSlide.getId());
+                    newAnimationElement.setTemplateId(templateElement.getTemplateId());
+                    newAnimationElement.setRootElementTemplateId(templateElement.getId());
+                    theSlide.getElements().add(newAnimationElement);
+                }
+            }
+        }
     }
 
 }
