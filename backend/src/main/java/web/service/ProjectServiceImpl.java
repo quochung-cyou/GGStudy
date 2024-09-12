@@ -99,7 +99,7 @@ public class ProjectServiceImpl implements ProjectService {
     public Project createProjectsFromOutlines(String topicName, List<Outline> outlines){
         Instant allStart = Instant.now();
         Project theProject = new Project();
-        theProject.setTitle(topicName);
+        if(topicName != null) theProject.setTitle(topicName);
         List<CompletableFuture<List<Slide>>> futures = new ArrayList<>();
         Instant start = Instant.now();
         for (Outline outline : outlines) {
@@ -168,19 +168,7 @@ public class ProjectServiceImpl implements ProjectService {
         prompt = prompt.replace("{{history}}", joinOfHistoryList.toString());
         prompt = prompt.replace("{{question}}", question);
         log.info(prompt);
-        try {
-            JsonNode jsonNode = objectMapper.readTree(geminiClient.getDataFromPrompt(prompt));
-            return jsonNode
-                    .get("candidates")
-                    .get(0)
-                    .get("content")
-                    .get("parts")
-                    .get(0)
-                    .get("text")
-                    .asText();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to parse response body", e);
-        }
+        return formatString(geminiClient.getDataFromPrompt(prompt));
     }
 
     @NotNull

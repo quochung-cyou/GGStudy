@@ -33,6 +33,6 @@ public class SlideInputFormat {
     private String secondImageTitle = "";
     @JsonProperty("image_2_text")
     private String secondImageText = "";
-    @JsonProperty("effects")
+    @JsonProperty(value = "effects")
     private List<AnimationInputFormat> animations;
 }
