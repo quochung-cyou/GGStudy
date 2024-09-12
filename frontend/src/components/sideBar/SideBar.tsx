@@ -45,8 +45,8 @@ export const SideBar = ({chooseTab}: SideBarProps) => {
                     <div className='text-1xl font-bold'>{user?.name.split(' ').map(word => word[0]).join('')}</div>
                 </div>
                 <div>
-                    <div>{user?.name}</div>
-                    <div className='text-[#818181] font-light text-[12px]'>{user?.email}</div>
+                    <div className='text-wrap'>{user?.name}</div>
+                    <div className='text-wrap text-[#818181] font-light text-[12px]'>{user?.email}</div>
                 </div>
             </div>
             <div className='w-full relative'>

@@ -3,6 +3,8 @@ import {useRoutes} from "react-router-dom";
 import {LandingPage} from "../feature/LandingPage/LandingPage";
 import React from "react";
 import {AnimatePresence} from "framer-motion";
+import {ToastContainer} from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 export const AppRoutes = () => {
     const commonRoutes = [{path: "/", element: <LandingPage/>}];
@@ -11,7 +13,7 @@ export const AppRoutes = () => {
 
     return (
         <AnimatePresence mode={"wait"}>
-
+            <ToastContainer />
             <>{element}</>
 
 
