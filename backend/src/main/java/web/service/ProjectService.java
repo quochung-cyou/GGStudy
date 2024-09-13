@@ -13,7 +13,7 @@ public interface ProjectService {
 
     Project findById(String id);
 
-    Project createProjectsFromOutlines(List<Outline> outlines) throws IOException;
+    Project createProjectsFromOutlines(String topicName, List<Outline> outlines) throws IOException;
 
     List<OutlineResponse> createProjectOutlines(String topicName) throws IOException;
 
