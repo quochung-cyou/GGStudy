@@ -55,4 +55,3 @@ public class Project {
         this.slides = new ArrayList<>();
     }
 }
-

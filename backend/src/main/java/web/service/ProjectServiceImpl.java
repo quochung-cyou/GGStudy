@@ -14,12 +14,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
-import web.common.dto.OutlineInputFormat;
-import web.common.dto.ProjectDTO;
-import web.common.dto.ProjectInputFormat;
-import web.common.dto.SlideInputFormat;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import web.common.dto.*;
 import web.common.exception.NotFoundException;
 import web.common.shared.ContentType;
+import web.common.shared.EffectType;
 import web.common.shared.SlideType;
 import web.common.utils.PageableUtils;
 import web.dao.repository.FieldStyleRepository;
@@ -33,10 +33,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static web.common.shared.Constants.*;
@@ -55,6 +55,8 @@ public class ProjectServiceImpl implements ProjectService {
     private final FieldStyleRepository fieldStyleRepository;
 
     private final ProjectMapper projectMapper;
+    private final int scores = Runtime.getRuntime().availableProcessors();
+    public final ExecutorService executorService = Executors.newFixedThreadPool(scores*2);
 
     private final ObjectMapper objectMapper;
     private final ResourceLoader loader;
@@ -89,25 +91,54 @@ public class ProjectServiceImpl implements ProjectService {
                 }
             }
         }
+        log.info("Getting project successfully");
         return projectGet;
     }
 
+
     @Override
-    public Project createProjectsFromGemini(String topicName, String additionalInfo) throws IOException {
+    public Project createProjectsFromOutlines(String topicName, List<Outline> outlines){
         Instant allStart = Instant.now();
-        String prompt = constructTopicPrompt(topicName, additionalInfo);
-        Instant start = Instant.now();
-        String response = geminiClient.getDataFromPrompt(prompt);
-        log.info("Response from Gemini: {}", response);
-        log.info("Time taken to get response from Gemini: {}", Instant.now().toEpochMilli() - start.toEpochMilli());
-        var projectInputFormat = objectMapper.readValue(formatString(response), ProjectInputFormat.class);
         Project theProject = new Project();
-        theProject.setTitle(topicName);
-        extractSlide(projectInputFormat, theProject);
+        if(topicName != null) theProject.setTitle(topicName);
+        List<CompletableFuture<List<Slide>>> futures = new ArrayList<>();
+        Instant start = Instant.now();
+        for (Outline outline : outlines) {
+            Mono<List<Slide>> mono = Mono.fromCallable(() -> {
+                try {
+                    return createProjectsFromGemini(outline.getTitle(), outline.getDescription(), theProject);
+                } catch (Exception e) {
+                    log.error("Error creating slides from outline: {}", e.getMessage(), e);
+                    return new ArrayList<Slide>();
+                }
+            }).subscribeOn(Schedulers.fromExecutor(executorService));
+            futures.add(mono.toFuture());
+        }
+        CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        List<List<Slide>> listSlides = new ArrayList<>();
+        CompletableFuture<List<List<Slide>>> allImagesFuture = allOf.thenApply(v -> futures.stream()
+                .map(future -> {
+                    try {
+                        return future.get();
+                    } catch (Exception e) {
+                        log.error("Error creating slides from outline: {}", e.getMessage(), e);
+                        return new ArrayList<Slide>();
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
+        allImagesFuture.thenAccept(listSlides::addAll).join();
+        log.info("Time taken to get slides from Gemini: {}", Instant.now().toEpochMilli() - start.toEpochMilli());
+        for (List<Slide> slides : listSlides) {
+            theProject.getSlides().addAll(slides);
+        }
         start = Instant.now();
         imageService.setUrlImageElement(theProject);
         log.info("Time taken to get image links: {}", Instant.now().toEpochMilli() - start.toEpochMilli());
+        theProject.setTitle(theProject.getSlides().get(0).getHeadingTitle());
         projectRepository.save(theProject);
+        log.info(String.valueOf(theProject.getSlides().size()));
+        log.info("project saved successfully");
         log.info("Time taken for the whole process: {}", Instant.now().toEpochMilli() - allStart.toEpochMilli());
         return theProject;
     }
@@ -117,9 +148,17 @@ public class ProjectServiceImpl implements ProjectService {
         String prompt = getPromptFromFile(OUTLINE_PROMPT_PATH);
         prompt = prompt.replace("{{topic_name}}", topicName);
         String response = geminiClient.getDataFromPrompt(prompt);
-        System.out.println(response);
+        log.info(response);
         var outlineInputFormat = objectMapper.readValue(formatString(response), OutlineInputFormat.class);
         return outlineInputFormat.getOutlines();
+    }
+
+    public List<Slide> createProjectsFromGemini(String topicName, String additionalInfo, Project theProject) throws IOException {
+        String prompt = constructTopicPrompt(topicName, additionalInfo);
+        String response = geminiClient.getDataFromPrompt(prompt);
+        log.info("Response from Gemini: {}", response);
+        var projectInputFormat = objectMapper.readValue(formatString(response), ProjectInputFormat.class);
+        return extractSlide(projectInputFormat, theProject);
     }
 
     @Override
@@ -132,7 +171,7 @@ public class ProjectServiceImpl implements ProjectService {
         prompt = prompt.replace("{{history}}", joinOfHistoryList.toString());
         prompt = prompt.replace("{{question}}", question);
         log.info(prompt);
-        return geminiClient.getDataFromPrompt(prompt);
+        return formatString(geminiClient.getDataFromPrompt(prompt));
     }
 
     @NotNull
@@ -151,7 +190,8 @@ public class ProjectServiceImpl implements ProjectService {
         return new String(buffer, StandardCharsets.UTF_8);
     }
 
-    private void extractSlide(ProjectInputFormat projectInputFormat, Project theProject) {
+    private List<Slide> extractSlide(ProjectInputFormat projectInputFormat, Project theProject) {
+        List<Slide> listSlides = new ArrayList<>();
         for (SlideInputFormat geminiSlide : projectInputFormat.getSlides()) {
             Slide theSlide = new Slide();
             theSlide.setTopicName(geminiSlide.getTopicName());
@@ -174,8 +214,9 @@ public class ProjectServiceImpl implements ProjectService {
                     throw new NotFoundException("Slide template not found - " + geminiSlide.getSlideType());
             }
             theSlide.setProject(theProject);
-            theProject.getSlides().add(theSlide);
+            listSlides.add(theSlide);
         }
+        return listSlides;
     }
 
     private String formatString(String jsonString) throws JsonProcessingException {
@@ -183,7 +224,6 @@ public class ProjectServiceImpl implements ProjectService {
         JsonNode text = rootNode.path("candidates").get(0).path("content").path("parts").get(0);
         return text.path("text").asText();
     }
-
 
     @Override
     public Project save(Project theProject) {
@@ -205,8 +245,8 @@ public class ProjectServiceImpl implements ProjectService {
             newSlideElement.setContent(geminiSlide.getSlideTopicName());
             newSlideElement.setSlideId(theSlide.getId());
             newSlideElement.setRootElementTemplateId(templateElement.getId());
-
             theSlide.getElements().add(newSlideElement);
+            extractAnimationEffect(theSlide, geminiSlide, templateElement);
         }
         theSlide.setHeadingTitle(geminiSlide.getSlideTopicName());
         theSlide.setTemplate(onlyTextTemplate);
@@ -217,13 +257,15 @@ public class ProjectServiceImpl implements ProjectService {
         Template oneImageTemplate = templateList.get(random.nextInt(templateList.size()));
         for (Element templateElement : oneImageTemplate.getElements()) {
             Element newSlideElement = extractTemplateElement(templateElement);
-            if (templateElement.getElementType().equals(ContentType.TEXT.toString())) {
+            String elementType = templateElement.getElementType();
+            if (elementType.equals(ContentType.TEXT.toString())) {
                 newSlideElement.setContent(geminiSlide.getParagraphText());
-            } else if (templateElement.getElementType().equals(ContentType.IMAGE.toString())) {
+            } else if (elementType.equals(ContentType.IMAGE.toString())) {
                 newSlideElement.setImageUrl(geminiSlide.getSingleImageUrl());
-            } else if (templateElement.getElementType().equals(ContentType.HEADING.toString())) {
+            } else if (elementType.equals(ContentType.HEADING.toString())) {
                 newSlideElement.setContent(geminiSlide.getHeadingTitle());
             }
+            extractAnimationEffect(theSlide, geminiSlide, templateElement);
             newSlideElement.setRootElementTemplateId(templateElement.getId());
             newSlideElement.setSlideId(theSlide.getId());
             theSlide.getElements().add(newSlideElement);
@@ -238,18 +280,20 @@ public class ProjectServiceImpl implements ProjectService {
         for (int templateElementIndex = 0; templateElementIndex < twoImagesTemplate.getElements().size(); templateElementIndex++) {
             Element templateElement = twoImagesTemplate.getElements().get(templateElementIndex);
             Element newSlideElement = extractTemplateElement(templateElement);
-            if (templateElement.getElementType().equals(ContentType.TEXT.toString())) {
+            String elementType = templateElement.getElementType();
+            if (elementType.equals(ContentType.TEXT.toString())) {
                 newSlideElement.setContent(geminiSlide.getParagraphText());
-            } else if (templateElement.getElementType().equals(ContentType.IMAGE.toString())) {
+            } else if (elementType.equals(ContentType.IMAGE.toString())) {
                 if (!firstImageIsTaken) {
                     newSlideElement.setImageUrl(geminiSlide.getFirstImageUrl());
                     firstImageIsTaken = true;
                 } else {
                     newSlideElement.setImageUrl(geminiSlide.getSecondImageUrl());
                 }
-            } else if (templateElement.getElementType().equals(ContentType.HEADING.toString())) {
+            } else if (elementType.equals(ContentType.HEADING.toString())) {
                 newSlideElement.setContent(geminiSlide.getHeadingTitle());
             }
+            extractAnimationEffect(theSlide, geminiSlide, templateElement);
             newSlideElement.setRootElementTemplateId(templateElement.getId());
             newSlideElement.setSlideId(theSlide.getId());
             theSlide.getElements().add(newSlideElement);
@@ -281,6 +325,7 @@ public class ProjectServiceImpl implements ProjectService {
                 newSlideElement.setContent(geminiSlide.getSecondImageText());
                 newSlideElement.setImageUrl(geminiSlide.getSecondImageUrl());
             }
+            extractAnimationEffect(theSlide, geminiSlide, templateElement);
             newSlideElement.setSlideId(theSlide.getId());
             theSlide.getElements().add(newSlideElement);
             theSlide.setTemplate(twoImagestwoTextsTemplate);
@@ -292,6 +337,31 @@ public class ProjectServiceImpl implements ProjectService {
         BeanUtils.copyProperties(templateElement, newElement, "id", "slideId", "templateId");
         return newElement;
     }
+
+    private void extractAnimationEffect(Slide theSlide, SlideInputFormat geminiSlide, Element templateElement) {
+        if (geminiSlide.getAnimations() != null) {
+            Element newAnimationElement = new Element();
+            List<AnimationInputFormat> animationInputFormats = geminiSlide.getAnimations();
+            for(AnimationInputFormat animation : animationInputFormats) {
+                if (animation.getElementId().equals(templateElement.getElementType())){
+                    BeanUtils.copyProperties(templateElement, newAnimationElement, "id", "elementType", "appearOrder", "duration");
+                    newAnimationElement.setElementType(animation.getElementType());
+                    newAnimationElement.setAppearOrder(animation.getAppearOrder());
+                    newAnimationElement.setDuration(animation.getDuration());
+                    if (animation.getElementType().equals(EffectType.BOLD.toString())) {
+                        newAnimationElement.setElementType(EffectType.BOLD.toString());
+                    } else if (animation.getElementType().equals(EffectType.CIRCLE.toString())) {
+                        newAnimationElement.setElementType(EffectType.CIRCLE.toString());
+                    }
+                    newAnimationElement.setSlideId(theSlide.getId());
+                    newAnimationElement.setTemplateId(templateElement.getTemplateId());
+                    newAnimationElement.setRootElementTemplateId(templateElement.getId());
+                    theSlide.getElements().add(newAnimationElement);
+                }
+            }
+        }
+    }
+
 }
 
 

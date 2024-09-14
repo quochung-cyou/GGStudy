@@ -22,7 +22,7 @@ public class Template {
     @JoinColumn(name = "template_id")
     private List<Slide> slides;
 
-    @OneToMany(cascade = {CascadeType.ALL})
+    @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH, CascadeType.REMOVE})
     @JoinColumn(name = "template_id")
     private List<Element> elements;
 }
