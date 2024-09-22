@@ -3,17 +3,23 @@ Your task is to generate slides in JSON format that cover the essential informat
 The slides should include definitions, properties, syntax, clear illustrative images, and additional relevant information.
 Your main objective is to deliver a single, well-structured JSON file containing all chapters' information, summarized into one cohesive file.
 
-Currently there will be 3 type of slide:
+Currently, there will be 4 type of slide:
 
 1. Chapter Slide:
 This slide introduces a chapter within the topic.
 It is typically used to mark the beginning of a new section or chapter, providing a clear transition in the lesson.
- It should state the topic name and chapter name accurately to reflect the chapter's content.
-It have field:
+It should state the topic name and chapter name accurately to reflect the chapter's content.
+It has fields:
 - slide_type: "TEXT_ONLY"
 - chapter_name: The specific chapter title
+- effects: A list of the animations effect that will be used throughout the slide, each will be used on a particular element in the slide.
+  - element_id: ID field of the .json file that the effect apply on, with uppercase form: {HEADING}
+    - effect_type: use between these 2 effects {BOLD, CIRCLE}, BOLD should be applied on Text, CIRCLE should be applied on image or Heading
+    - appear_order: 1 - the number of order (increase from 1) that this effect will appear in presentation, this should be arranged to make the slide easy to understand.
+    - duration: the duration showing how long this bold effect will last
+  - Note that any ID_field of the .json file can have multiple effects, not always 1 effect, according to the presentation and explaination purposes.
 
-2. Slide with 1 Image:
+1. Slide with 1 Image:
 This slide is used to introduce or illustrate a single concept, idea, or example.
  It should contain one image, a title, and descriptive content that clearly explains the image's relevance to the topic.
 The content text should be concise but sufficiently detailed to provide a thorough understanding.
@@ -25,9 +31,19 @@ This slide includes one image, a title, and descriptive content.
 - heading_title: A short, descriptive title (max two words)
 - paragraph_text: A detailed, clear explanation of the image's content
 - image: A brief description of the image, focused on the main keyword for easy sourcing
+- effects: A list of the animations effect that will be used throughout the slide, each will be used on a particular element in the slide.
+  - element_id: ID field of the .json file that the effect apply on, with uppercase form (choose among {IMAGE, TEXT, HEADING})
+  - effect_type: use between these 2 effects {BOLD, CIRCLE}, BOLD should be applied on Text, CIRCLE should be applied on image or Heading
+  - appear_order: 1 - the number of order (increase from 1) that this effect will appear in presentation, this should be arranged to make the slide easy to understand.
+  - duration: the duration showing how long this bold effect will last
+  - element_id: ID field of the .json file that the effect apply on, with uppercase form (choose among {IMAGE, TEXT, HEADING})
+  - effect_type: use between these 2 effects {BOLD, CIRCLE}, BOLD should be applied on Text, CIRCLE should be applied on image or Heading
+  - appear_order: 2 - the number of order that this effect will appear in presentation, this should be arranged to make the slide easy to understand.
+  - duration: the duration showing how long this bold effect will last
+  - The same with other fields if they have effect
+  - Note that any ID_field of the .json file can have multiple effects, not always 1 effect, according to the presentation and explaination purposes.
 
-
-3. Slide with 2 Images:
+3. Slide with 2 Images and 1 Text:
 This slide is used primarily for comparison, contrasting two related concepts, ideas, or examples.
 It contains two images, a title, and comparative content.
 The paragraph_text should provide a detailed, meaningful comparison, offering in-depth insights into the differences or similarities between the two images.
@@ -40,7 +56,41 @@ The content text should provide a detailed, meaningful comparison between the tw
 - image_1: A brief description of the first image, focused on the main keyword
 - image_2: A brief description of the second image, focused on the main keyword
 - paragraph_text: A comprehensive, detailed comparison of the two images, avoiding summarization
+- effects: A list of the animations effect that will be used throughout the slide, each will be used on a particular element in the slide.
+  - element_id: ID field of the .json file that the effect apply on, with uppercase form (choose among {IMAGE, TEXT, HEADING})
+  - effect_type: use between these 2 effects {BOLD, CIRCLE}, BOLD should be applied on Text, CIRCLE should be applied on image or Heading
+  - appear_order: 1 - the number of order (increase from 1) that this effect will appear in presentation, this should be arranged to make the slide easy to understand.
+  - duration: the duration showing how long this bold effect will last
+  - element_id: ID field of the .json file that the effect apply on, with uppercase form (choose among {IMAGE, TEXT, HEADING})
+  - effect_type: use between these 2 effects {BOLD, CIRCLE}, BOLD should be applied on Text, CIRCLE should be applied on image or Heading
+  - appear_order: 2 - the number of order that this effect will appear in presentation, this should be arranged to make the slide easy to understand.
+  - duration: the duration showing how long this bold effect will last
+  - The same with other fields if they have effect
+  - Note that any ID_field of the .json file can have multiple effects, not always 1 effect, according to the presentation and explaination purposes.
 
+4. Slide with 2 Images and 2 Texts:
+This slide is used primarily for explanation, showing two related content about the current part of the topic.
+This slide contains two images, two titles.
+Each of the text should provide a detailed, meaningful explanation, about the text's respectively image.
+The images should practically illustrate the title and be easily found through a Google search.
+
+- slide_type: "TWO_IMAGES_AND_TWO_TEXTS"
+- heading_title: A concise title (max two words)
+- image_1: A brief description of the first image, focused on the main keyword
+- image_1_text: A comprehensive, detailed explanation of the first image, avoiding summarization.
+- image_2: A brief description of the second image, focused on the main keyword
+- image_2_text: A comprehensive, detailed explanation of the second image, avoiding summarization.
+- effects: A list of the animations effect that will be used throughout the slide, each will be used on a particular element in the slide.
+  - element_id: ID field of the .json file that the effect apply on, with uppercase form (choose among {IMAGE1, IMAGE2, TEXT1, TEXT2, HEADING})
+  - effect_type: use between these 2 effects {BOLD, CIRCLE}, BOLD should be applied on Text, CIRCLE should be applied on image or Heading
+  - appear_order: 1 - the distinct number of order (increase from 1) that this effect will appear in presentation, this should be arranged to make the slide easy to understand.
+  - duration: the duration showing how long this bold effect will last
+  - element_id: ID field of the .json file that the effect apply on, with uppercase form (choose among {IMAGE1, IMAGE2, TEXT1, TEXT2, HEADING})
+  - effect_type: use between these 2 effects {BOLD, CIRCLE}, BOLD should be applied on Text, CIRCLE should be applied on image or Heading
+  - appear_order: 2 - the number of order that this effect will appear in presentation, this should be arranged to make the slide easy to understand.
+  - duration: the duration showing how long this bold effect will last (use seconds as unit)
+  - The same with other fields if they have effect
+  - Note that any ID_field of the .json file can have multiple effects, not always 1 effect, according to the presentation and explaination purposes.
 
 Guidelines:
 Content Quality:
@@ -58,25 +108,121 @@ Before submitting the JSON file, perform a thorough review to ensure all chapter
 Now, here is the main request:
 The topic is about {{topic_name}}. Here is some additional information about the topic: {{additional_info}}
 
+IMPORTANT: ONLY RETURN 1 SLIDE IN CHAPTERS ARRAY. PRIOTIZE THE SLIDE WITH 1 IMAGE, THEN 2 IMAGES, THEN TEXT ONLY
+
 Example response format:
 {
    "chapters": [
       {
-         "slide_type": "TEXT_ONLY",
-         "topic_name": "Vietnam Education",
-         "chapter_name": "Introduction to Vietnam Education"
+        "slide_type": "TEXT_ONLY",
+        "topic_name": "Vietnam Education",
+        "chapter_name": "Introduction to Vietnam Education",
+        “effects”: [
+            {
+                "element_id": "HEADING",
+                "effect_type": BOLD,
+                "appear_order": 1,
+                "duration": 20
+            }
+        ]
       },
       {
-         "slide_type": "ONE_IMAGE_AND_TEXT",
-         "heading_title": "Education System",
-         "paragraph_text": "The Vietnamese education system is structured in a hierarchical manner, with a strong emphasis on academic achievement and standardized testing. It comprises various levels, including preschool, primary, secondary, and higher education. The system prioritizes a comprehensive curriculum encompassing both theoretical and practical knowledge.",
-         "image": "Image of a typical Vietnamese school building"
+        "slide_type": "ONE_IMAGE_AND_TEXT",
+        "heading_title": "Education System",
+        "paragraph_text": "The Vietnamese education system is structured in a hierarchical manner, with a strong emphasis on academic achievement and standardized testing. It comprises various levels, including preschool, primary, secondary, and higher education. The system prioritizes a comprehensive curriculum encompassing both theoretical and practical knowledge.",
+        "image": "Image of a typical Vietnamese school building",
+        “effects”: [
+            {
+                "element_id": "IMAGE",
+                "effect_type": "CIRCLE",
+                "appear_order": 1,
+                "duration": 2
+            },
+            {
+                "element_id": "TEXT",
+                "effect_type": "BOLD",
+                "appear_order": 2,
+                "duration": 5
+            },
+            {
+                "element_id": "IMAGE",
+                "effect_type": "CIRCLE",
+                "appear_order": 3,
+                "duration": 2
+            }
+        ]
       },
       {
-         "slide_type": "TWO_IMAGES_AND_TEXT",
-         "heading_title": "Key Features",
-         "image_1": "students participating in a classroom discussion",
-         "image_2": student taking test",
-            "paragraph_text": "The Vietnamese education system emphasizes rote learning and memorization, with a focus on academic excellence. Students are expected to excel in standardized tests, which significantly influence their academic and career prospects. The system also places a strong emphasis on discipline, respect for teachers, and hard work."
+        "slide_type": "TWO_IMAGES_AND_TEXT",
+        "heading_title": "Key Features",
+        "image_1": "students participating in a classroom discussion",
+        "image_2": student taking test",
+        "paragraph_text": "The Vietnamese education system emphasizes rote learning and memorization, with a focus on academic excellence. Students are expected to excel in standardized tests, which significantly influence their academic and career prospects. The system also places a strong emphasis on discipline, respect for teachers, and hard work."
+        “effects”: [
+            {
+                "element_id": "IMAGE",
+                "effect_type": "CIRCLE",
+                "appear_order": 1,
+                "duration": 3
+            },
+            {
+                "element_id": "IMAGE",
+                "effect_type": "CIRCLE",
+                "appear_order": 2,
+                "duration": 3
+            },
+            {
+                "element_id": "TEXT",
+                "effect_type": "BOLD",
+                "appear_order": 3,
+                "duration": 5
+            },
+            {
+                "element_id": "IMAGE",
+                "effect_type": "CIRCLE",
+                "appear_order": 4,
+                "duration": 2
+            }
+        ]
+      },
+      {
+        "slide_type": "TWO_IMAGES_AND_TWO_TEXTS",
+        "heading_title": "Examples of Vietnamese School",
+        "image_1": "student speaking in front of class",
+        "image_1_text":"Student has opportunity to raise their opinion",
+        "image_2": "Students having break time between classes",
+        "image_2_text":"Students having break time between classes",
+        “effects”: [
+            {
+                "element_id": "IMAGE1",
+                "effect_type": "CIRCLE",
+                "appear_order": 1,
+                "duration": 1
+            },
+            {
+                "element_id": "TEXT1",
+                "effect_type": "BOLD",
+                "appear_order": 2,
+                "duration": 3
+            },
+            {
+                "element_id": "IMAGE2",
+                "effect_type": "CIRCLE",
+                "appear_order": 3,
+                "duration": 1
+            },
+            {
+                "element_id": "TEXT2",
+                "effect_type": "BOLD",
+                "appear_order": 4,
+                "duration": 3
+            },
+            {
+                "element_id": "TEXT1",
+                "effect_type": "BOLD",
+                "appear_order": 5,
+                "duration": 1
+            }
+        ]
       }
 ]
