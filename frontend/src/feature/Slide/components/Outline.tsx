@@ -44,8 +44,19 @@ export const Outline = () => {
     const selectSlideDimension = (dimension: string) => setSlideDimension(dimension);
 
     const handleGenerateOutlines = async () => {
+        if (prompt === '') {
+            toast.error('Please type a prompt to generate outlines');
+            const promptInput = document.querySelector('.promptInput');
+            promptInput.classList.add('squiggle');
+            setTimeout(() => promptInput.classList.remove('squiggle'), 500);
+            return;
+        }
         toast.info('Generating outlines...');
         const result = await generateOutlines(prompt);
+        if (!result) {
+            toast.error('Failed to generate outlines. Please try again.', { autoClose: 5000 });
+            return;
+        }
         result.forEach((outline) => {
             outline.id = Math.random().toString(36).substr(2, 9);
         });
