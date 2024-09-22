@@ -44,6 +44,22 @@ export const generateOutlines = async (topicName: string): Promise<any> => {
     }
 };
 
+
+export const getAnswer = async (newHistory: any[], currentMessage: string): Promise<any> => {
+    try {
+        const response = await axios.post('/projects/answers', {
+            history: newHistory.map(item => item.message),
+            question: currentMessage
+        });
+
+        return response.message;
+    } catch (error: any) {
+        return {
+            message: error.message,
+        };
+    }
+};
+
 export const createSlide = async (data: any): Promise<any> => {
     try {
         const response = await axios.post('/projects', data);

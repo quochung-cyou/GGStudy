@@ -170,8 +170,11 @@ public class ProjectServiceImpl implements ProjectService {
         }
         prompt = prompt.replace("{{history}}", joinOfHistoryList.toString());
         prompt = prompt.replace("{{question}}", question);
-        log.info(prompt);
-        return formatString(geminiClient.getDataFromPrompt(prompt));
+        String response =  formatString(geminiClient.getDataFromPrompt(prompt));
+        log.info("Response from Gemini: {}", response);
+        Map<String, Object> map = new HashMap<>();
+        map = objectMapper.readValue(response, map.getClass());
+        return (String) map.get("answer");
     }
 
     @NotNull
