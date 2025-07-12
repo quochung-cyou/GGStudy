@@ -34,7 +34,7 @@
         <springdoc-openapi-starter-webmvc-ui.version>2.5.0</springdoc-openapi-starter-webmvc-ui.version>
         <json.version>20231013</json.version>
         <mapstruct.version>1.6.0</mapstruct.version>
-        <commons-lang3.version>3.2.1</commons-lang3.version>
+        <commons-lang3.version>3.18.0</commons-lang3.version>
     </properties>
     <dependencies>
 
